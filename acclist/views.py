@@ -16,12 +16,17 @@ def alllist(request, username):
     account_list = Account.objects.filter(
         accup_user_id_id__accup_user_name=username
     ).order_by('service__service_name')
-    template = loader.get_template('acclist/alllist.html')
-    context = {
+    template_acc = loader.get_template('acclist/acclist.html')
+    context_acc = {
         'account_list': account_list,
+    }
+    template_mail = loader.get_template('acclist/maillist.html')
+    context_mail = {
         'mail_list': mail_list,
     }
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(
+        template_mail.render(context_mail, request) +
+        template_acc.render(context_acc, request))
 
 def accdetail(request, username, accid):
     account = Account.objects.get(
@@ -33,4 +38,15 @@ def accdetail(request, username, accid):
         'account': account
     }
     return HttpResponse(template.render(context, request))
+
+def maillinkedlist(request, username, mailid):
+    account_list = Account.objects.filter(
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(mailaddr1=mailid) | Q(mailaddr2=mailid) | Q(mailaddr3=mailid)
+    ).order_by('service__service_name')
+    template_acc = loader.get_template('acclist/acclist.html')
+    context_acc = {
+        'account_list': account_list,
+    }
+    return HttpResponse(template_acc.render(context_acc, request))
 

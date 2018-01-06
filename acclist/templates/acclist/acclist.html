@@ -1,16 +1,3 @@
-<h1>Mail address list</h1>
-{% if mail_list %}
-    <ul>
-    {% for mail in mail_list %}
-        <li><a href="/acclist/{{ mail.accup_user_id.accup_user_name }}/maillinkedlist/{{ mail.id }}">
-            {{ mail.mailaddr_text }}
-        </a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No mail addresses are registered.</p>
-{% endif %}
-
 <h1>Account list</h1>
 {% if account_list %}
     <ul>
