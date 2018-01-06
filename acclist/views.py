@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.template import loader
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.db.models import Q
 
 from accounts.models import User
@@ -29,10 +29,13 @@ def alllist(request, username):
         template_acc.render(context_acc, request))
 
 def accdetail(request, username, accid):
-    account = Account.objects.get(
-        Q(accup_user_id_id__accup_user_name=username),
-        Q(id=accid)
-    )
+    try:
+        account = Account.objects.get(
+            Q(accup_user_id_id__accup_user_name=username),
+            Q(id=accid)
+        )
+    except Account.DoesNotExist:
+        raise Http404("Requested account information does not exist")
     template = loader.get_template('acclist/accdetail.html')
     context = {
         'account': account
