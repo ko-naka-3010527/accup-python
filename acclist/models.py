@@ -10,17 +10,17 @@ class Service(models.Model):
 class Mailaddr(models.Model):
     accup_user_id = models.ForeignKey(User,
         on_delete=models.CASCADE, related_name='accup_user',)
-    mailaddr_text = models.EmailField(unique=True)
+    mailaddr_text = models.EmailField()
 
 class Address(models.Model):
     accup_user_id = models.ForeignKey(User,
         on_delete=models.CASCADE)
-    address_text = models.CharField(max_length=200, unique=True)
+    address_text = models.CharField(max_length=200)
 
 class Phonenum(models.Model):
     accup_user_id = models.ForeignKey(User,
         on_delete=models.CASCADE)
-    phonenum_text = models.CharField(max_length=20, unique=True)
+    phonenum_text = models.CharField(max_length=20)
 
 class Account(models.Model):
     accup_user_id = models.ForeignKey(User,
