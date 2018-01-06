@@ -45,8 +45,16 @@ class Account(models.Model):
         related_name='account_link_2', blank=True, null=True)
     link3 = models.ForeignKey('self', on_delete=models.CASCADE,
         related_name='account_link_3', blank=True, null=True)
-    multifactorauth_type = models.IntegerField(blank=True, null=True)
-    multifactorauth_id = models.IntegerField(blank=True, null=True)
+    multifactorauth_type = models.CharField(
+        max_length=100, blank=True, null=True)
+    multifactorauth_id = models.CharField(
+        max_length=100, blank=True, null=True)
+    secret_q1 = models.CharField(max_length=200, blank=True, null=True)
+    secret_a1 = models.CharField(max_length=200, blank=True, null=True)
+    secret_q2 = models.CharField(max_length=200, blank=True, null=True)
+    secret_a2 = models.CharField(max_length=200, blank=True, null=True)
+    secret_q3 = models.CharField(max_length=200, blank=True, null=True)
+    secret_a3 = models.CharField(max_length=200, blank=True, null=True)
     account_register_date = models.DateField(blank=True, null=True)
     account_unregister_date = models.DateField(blank=True, null=True)
     createdate = models.DateTimeField(auto_now_add=True)

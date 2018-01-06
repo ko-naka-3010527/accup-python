@@ -1,0 +1,27 @@
+{% if account %}
+    <ul>
+        <li>(id) {{ account.id }}</li>
+        <li>[accup id] {{ account.accup_user_id.accup_user_name }}</li>
+        <li>[status] {{ account.status }}</li>
+        <li>[service] {{ account.service.service_name }}</li>
+        <li>[service user id] {{ account.name }}</li>
+        <li>[service password] {{ account.passwd }}</li>
+        <li>[mail address 1] {{ account.mailaddr1.mailaddr_text }}</li>
+        <li>[mail address 2] {{ account.mailaddr2.mailaddr_text }}</li>
+        <li>[mail address 3] {{ account.mailaddr3.mailaddr_text }}</li>
+        <li>[address] {{ account.address.address_text }}</li>
+        <li>[phone number] {{ account.phonenum.phonenum_text }}</li>
+        <li>[account link 1] <a href="/accdetail/{{ account.accup_user_id.accup_user_name }}/{{ account.link1_id }}">{{ account.link1.service.service_name }} - {{ account.link1.name }}</a></li>
+        <li>[account link 2] <a href="/accdetail/{{ account.accup_user_id.accup_user_name }}/{{ account.link2_id }}">{{ account.link2.service.service_name }} - {{ account.link2.name }}</a></li>
+        <li>[account link 3] <a href="/accdetail/{{ account.accup_user_id.accup_user_name }}/{{ account.link3_id }}">{{ account.link3.service.service_name }} - {{ account.link3.name }}</a></li>
+        <li>[multi factor auth type] {{ account.multifactorauth_type }}</li>
+        <li>[multi factor auth info] {{ account.multifactorauth_id }}</li>
+        <li>[account register date] {{ account.account_register_date }}</li>
+        <li>[account unregister date] {{ account.account_unregister_date }}</li>
+        <li>(createdate) {{ account.createdate }}</li>
+        <li>(modifieddate) {{ account.modifieddate }}</li>
+        <li>(deletedate) {{ account.deletedate }}</li>
+    </ul>
+{% else %}
+    <p>The account does not exist.</p>
+{% endif %}

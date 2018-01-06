@@ -3,7 +3,7 @@ from django.db import models
 # user management data
 class User(models.Model):
     status = models.SmallIntegerField(default=1)
-    accup_user_name = models.CharField(max_length=40)
+    accup_user_name = models.CharField(max_length=40, unique=True)
     mailaddr = models.EmailField(unique=True)
     passwd = models.CharField(max_length=100)
     cipherkey = models.CharField(max_length=100)
