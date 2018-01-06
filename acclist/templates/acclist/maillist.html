@@ -2,7 +2,7 @@
 {% if mail_list %}
     <ul>
     {% for mail in mail_list %}
-        <li><a href="/acclist/{{ mail.accup_user_id.accup_user_name }}/maillinkedlist/{{ mail.id }}">
+        <li><a href="{% url 'acclist:maillinkedlist' mail.accup_user_id.accup_user_name mail.id %}">
             {{ mail.mailaddr_text }}
         </a></li>
     {% endfor %}
