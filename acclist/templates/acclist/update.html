@@ -1,0 +1,7 @@
+<h1>Register your account</h1>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'acclist:update' acc.accup_user_id.accup_user_name acc.id %}" method="post">
+{% csrf_token %}
+<input type="submit" value="Submit" />
+</form>

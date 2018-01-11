@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.http import HttpResponse, Http404
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from accounts.models import User
 from .models import Account, Mailaddr
@@ -29,13 +30,9 @@ def alllist(request, username):
         template_acc.render(context_acc, request))
 
 def accdetail(request, username, accid):
-    try:
-        account = Account.objects.get(
-            Q(accup_user_id_id__accup_user_name=username),
-            Q(id=accid)
-        )
-    except Account.DoesNotExist:
-        raise Http404("Requested account information does not exist")
+    account = get_object_or_404(Account,
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(id=accid))
     template = loader.get_template('acclist/accdetail.html')
     context = {
         'account': account
@@ -52,4 +49,7 @@ def maillinkedlist(request, username, mailid):
         'account_list': account_list,
     }
     return HttpResponse(template_acc.render(context_acc, request))
+
+#def update(request, username, accid):
+
 
