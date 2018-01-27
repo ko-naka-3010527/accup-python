@@ -1,7 +1,145 @@
-<h1>Register your account</h1>
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-<form action="{% url 'acclist:update' acc.accup_user_id.accup_user_name acc.id %}" method="post">
-{% csrf_token %}
-<input type="submit" value="Submit" />
-</form>
+{% extends "base.html" %}
+{% block contents %}
+    {% if account and mail_list and service_list and addr_list and phone_list and account_list %}
+    <h1>Update your account</h1>
+    <form action="{% url 'acclist:accupdate' 'html' account.accup_user_id.accup_user_name account.id %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ account.id }}">
+        <input type="hidden" name="accup_user_id" value="{{ account.accup_user_id.accup_user_name }}">
+        <p>
+            account id: {{ account.id }}, account name: {{ account.accup_user_id.accup_user_name }}
+        </p>
+        <ul style="list-style: none;">
+            <li>[status]
+                <select name="status" size="1">
+                    <option value="1"{% if account.status == 1 %} selected{% endif %}>Alive</option>
+                    <option value="0"{% if account.status == 0 %} selected{% endif %}>Dead</option>
+                </select>
+            </li>
+            <li>[service]
+                <select name="service" size="1">
+                    <option value="new">[Add new service]</option>
+        {% for svc in service_list %}
+                    <option value="{{ svc.id }}"{% if account.service.id == svc.id %} selected{% endif %}>{{ svc.service_name }}</option>
+        {% endfor %}
+                </select>
+                new service <input name="name" type="newservice" size="40">
+            </li>
+            <li>[service user id]
+                <input name="name" type="text" size="40" value="{{ account.name }}">
+            </li>
+            <li>[service password]</li>
+            <li>
+                <input type="radio" name="updatepwd" value="1"> update <input type="radio" name="updatepwd" value="0" checked> not update
+            </li>
+            <li>new password
+                <input name="password" type="password" size="40">
+            </li>
+            <li>password confirm
+                <input name="password_conf" type="password" size="40">
+            </li>
+            <li>[mail address 1] 
+                <select name="mailaddr1" size="1">
+                    <option value="none"{% if not account.mailaddr1 %} selected{% endif %}>----</option>
+        {% for mail in mail_list %}
+                    <option value="{{ mail.id }}"{% if account.mailaddr1.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[mail address 2] 
+                <select name="mailaddr2" size="1">
+                    <option value="none"{% if not account.mailaddr2 %} selected{% endif %}>----</option>
+        {% for mail in mail_list %}
+                    <option value="{{ mail.id }}"{% if account.mailaddr2.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[mail address 3] 
+                <select name="mailaddr3" size="1">
+                    <option value="none"{% if not account.mailaddr3 %} selected{% endif %}>----</option>
+        {% for mail in mail_list %}
+                    <option value="{{ mail.id }}"{% if account.mailaddr3.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[address] 
+                <select name="address" size="1">
+                    <option value="none"{% if not account.address %} selected{% endif %}>----</option>
+        {% for addr in addr_list %}
+                    <option value="{{ addr.id }}"{% if account.address.id == addr.id %} selected{% endif %}>{{ addr.address_text }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[phone number] 
+                <select name="phonenum" size="1">
+                    <option value="none"{% if not account.phonenum %} selected{% endif %}>----</option>
+        {% for phone in phone_list %}
+                    <option value="{{ phone.id }}"{% if account.phonenum.id == phone.id %} selected{% endif %}>{{ phone.phonenum_text }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[account link 1] 
+                <select name="link1" size="1">
+                    <option value="none"{% if not account.link1 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                    <option value="{{ acc.id }}"{% if account.link1.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[account link 2] 
+                <select name="link2" size="1">
+                    <option value="none"{% if not account.link2 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                    <option value="{{ acc.id }}"{% if account.link2.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[account link 3] 
+                <select name="link3" size="1">
+                    <option value="none"{% if not account.link3 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                    <option value="{{ acc.id }}"{% if account.link3.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+                </select>
+            </li>
+            <li>[multi factor auth type] 
+                <input name="name" type="multifactor_type" size="40" value="{% if account.multifactorauth_type %}{{ account.multifactorauth_type }}{% endif %}">
+            </li>
+            <li>[multi factor auth info] 
+                <input name="name" type="multifactor_info" size="40" value="{% if account.multifactorauth_id %}{{ account.multifactorauth_id }}{% endif %}">
+            </li>
+            <li>[secret question 1] 
+                <input name="name" type="secq1" size="40" value="{% if account.secret_q1 %}{{ account.secret_q1 }}{% endif %}">
+            </li>
+            <li>[secret answer 1] 
+                <input name="name" type="seca1" size="40" value="{% if account.secret_a1 %}{{ account.secret_a1 }}{% endif %}">
+            </li>
+            <li>[secret question 2] 
+                <input name="name" type="secq2" size="40" value="{% if account.secret_q2 %}{{ account.secret_q2 }}{% endif %}">
+            </li>
+            <li>[secret answer 2] 
+                <input name="name" type="seca2" size="40" value="{% if account.secret_a2 %}{{ account.secret_a2 }}{% endif %}">
+            </li>
+            <li>[secret question 3] 
+                <input name="name" type="secq3" size="40" value="{% if account.secret_q3 %}{{ account.secret_q3 }}{% endif %}">
+            </li>
+            <li>[secret answer 3] 
+                <input name="name" type="seca3" size="40" value="{% if account.secret_a3 %}{{ account.secret_a3 }}{% endif %}">
+            </li>
+            <li>[account register date] 
+                <input type="date" name="register_date"{% if account.account_register_date %} value="{{ account.account_register_date|date:"Y-m-d" }}"{% endif %}>
+            </li>
+            <li>[account unregister date] 
+                <input type="date" name="unregister_date"{% if account.account_unregister_date %} value="{{ account.account_unregister_date|date:"Y-m-d" }}"{% endif %}>
+            </li>
+            <li>[memo] 
+                <textarea name="memo" rows="5" cols="40">{% if account.memo %}{{ account.memo }}{% endif %}</textarea>
+        </ul>
+        <input type="submit" value="Submit" />
+    </form>
+    <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.id %}">Go back to account detail</a>
+    {% else %}
+    <p>Failed to load account data.</p>
+    {% endif %}
+{% endblock contents %}
+    

@@ -1,4 +1,6 @@
-{% if account %}
+{% extends "base.html" %}
+{% block contents %}
+    {% if account %}
     <ul>
         <li>(id) {{ account.id }}</li>
         <li>[accup id] {{ account.accup_user_id.accup_user_name }}</li>
@@ -12,25 +14,25 @@
         <li>[address] {{ account.address.address_text }}</li>
         <li>[phone number] {{ account.phonenum.phonenum_text }}</li>
         <li>[account link 1]
-            {% if account.link1_id %}
-                <a href="{% url 'acclist:accdetail' account.accup_user_id.accup_user_name account.link1_id %}">{{ account.link1.service.service_name }} - {{ account.link1.name }}</a>
-            {% else %}
+        {% if account.link1_id %}
+                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link1_id %}">{{ account.link1.service.service_name }} - {{ account.link1.name }}</a>
+        {% else %}
                 n/a
-            {% endif %}
+        {% endif %}
         </li>
         <li>[account link 2] 
-            {% if account.link2_id %}
-                <a href="{% url 'acclist:accdetail' account.accup_user_id.accup_user_name account.link2_id %}">{{ account.link2.service.service_name }} - {{ account.link2.name }}</a>
-            {% else %}
+        {% if account.link2_id %}
+                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link2_id %}">{{ account.link2.service.service_name }} - {{ account.link2.name }}</a>
+        {% else %}
                 n/a
-            {% endif %}
+        {% endif %}
         </li>
         <li>[account link 3] 
-            {% if account.link3_id %}
-                <a href="{% url 'acclist:accdetail' account.accup_user_id.accup_user_name account.link3_id %}">{{ account.link3.service.service_name }} - {{ account.link3.name }}</a>
-            {% else %}
+        {% if account.link3_id %}
+                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link3_id %}">{{ account.link3.service.service_name }} - {{ account.link3.name }}</a>
+        {% else %}
                 n/a
-            {% endif %}
+        {% endif %}
         </li>
         <li>[multi factor auth type] {{ account.multifactorauth_type }}</li>
         <li>[multi factor auth info] {{ account.multifactorauth_id }}</li>
@@ -42,10 +44,14 @@
         <li>[secret answer 3] {{ account.secret_a3 }}</li>
         <li>[account register date] {{ account.account_register_date }}</li>
         <li>[account unregister date] {{ account.account_unregister_date }}</li>
+        <li>[memo] {{ account.memo }}</li>
         <li>(createdate) {{ account.createdate }}</li>
         <li>(modifieddate) {{ account.modifieddate }}</li>
         <li>(deletedate) {{ account.deletedate }}</li>
     </ul>
-{% else %}
+    <a href="{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}">update account</a><br>
+    {% else %}
     <p>The account does not exist.</p>
-{% endif %}
+    {% endif %}
+    <a href="{% url 'acclist:alllist' 'html' account.accup_user_id.accup_user_name %}">Go back to account list</a>
+{% endblock contents %}

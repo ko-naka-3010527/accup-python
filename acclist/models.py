@@ -57,6 +57,7 @@ class Account(models.Model):
     secret_a3 = models.CharField(max_length=200, blank=True, null=True)
     account_register_date = models.DateField(blank=True, null=True)
     account_unregister_date = models.DateField(blank=True, null=True)
+    memo = models.TextField(blank=True, null=True)
     createdate = models.DateTimeField(auto_now_add=True)
     modifieddate = models.DateTimeField(auto_now=True)
     deletedate = models.DateTimeField(blank=True, null=True)
