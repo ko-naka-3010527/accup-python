@@ -3,136 +3,252 @@
     {% if account and mail_list and service_list and addr_list and phone_list and account_list %}
     <h1>Update your account</h1>
     <form action="{% url 'acclist:accupdate' 'html' account.accup_user_id.accup_user_name account.id %}" method="post">
+        {% if validate %}
+            {{ validate.non_field_errors }}
+        {% endif %}
         {% csrf_token %}
-        <input type="hidden" name="id" value="{{ account.id }}">
-        <input type="hidden" name="accup_user_id" value="{{ account.accup_user_id.accup_user_name }}">
         <p>
             account id: {{ account.id }}, account name: {{ account.accup_user_id.accup_user_name }}
         </p>
         <ul style="list-style: none;">
-            <li>[status]
+        {% if validate %}
+            {{ validate.status.errors }}
+        {% endif %}
+            <li>[{{ key_string.status }}]
                 <select name="status" size="1">
                     <option value="1"{% if account.status == 1 %} selected{% endif %}>Alive</option>
                     <option value="0"{% if account.status == 0 %} selected{% endif %}>Dead</option>
                 </select>
             </li>
-            <li>[service]
+        {% if validate %}
+            {{ validate.service.errors }}
+        {% endif %}
+            <li>[{{ key_string.service }}]
                 <select name="service" size="1">
-                    <option value="new">[Add new service]</option>
+                    <option value="{{ select_option.new }}">[Add new service]</option>
         {% for svc in service_list %}
                     <option value="{{ svc.id }}"{% if account.service.id == svc.id %} selected{% endif %}>{{ svc.service_name }}</option>
         {% endfor %}
                 </select>
-                new service <input name="name" type="newservice" size="40">
             </li>
-            <li>[service user id]
-                <input name="name" type="text" size="40" value="{{ account.name }}">
+        {% if validate %}
+            {{ validate.newservice.errors }}
+        {% endif %}
+            <li>
+                new service <input name="newservice" type="text" size="40">
             </li>
-            <li>[service password]</li>
+        {% if validate %}
+            {{ validate.accountid.errors }}
+        {% endif %}
+            <li>[{{ key_string.name }}]
+                <input name="accountid" type="text" size="40" value="{{ account.name }}">
+            </li>
+            <li>[{{ key_string.password }}]</li>
+        {% if validate %}
+            {{ validate.updatepwd.errors }}
+        {% endif %}
             <li>
                 <input type="radio" name="updatepwd" value="1"> update <input type="radio" name="updatepwd" value="0" checked> not update
             </li>
+        {% if validate %}
+            {{ validate.password.errors }}
+        {% endif %}
             <li>new password
                 <input name="password" type="password" size="40">
             </li>
+        {% if validate %}
+            {{ validate.password_conf.errors }}
+        {% endif %}
             <li>password confirm
                 <input name="password_conf" type="password" size="40">
             </li>
-            <li>[mail address 1] 
+        {% if validate %}
+            {{ validate.mailaddr1.errors }}
+        {% endif %}
+            <li>[{{ key_string.mailaddr1 }}] 
                 <select name="mailaddr1" size="1">
-                    <option value="none"{% if not account.mailaddr1 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.mailaddr1 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.new }}">[Add new mail address]</option>
         {% for mail in mail_list %}
                     <option value="{{ mail.id }}"{% if account.mailaddr1.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[mail address 2] 
+        {% if validate %}
+            {{ validate.newmail1.errors }}
+        {% endif %}
+            <li>
+                new mailaddress <input name="newmail1" type="text" size="40">
+            </li>
+        {% if validate %}
+            {{ validate.mailaddr2.errors }}
+        {% endif %}
+            <li>[{{ key_string.mailaddr2 }}] 
                 <select name="mailaddr2" size="1">
-                    <option value="none"{% if not account.mailaddr2 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.mailaddr2 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.new }}">[Add new mail address]</option>
         {% for mail in mail_list %}
                     <option value="{{ mail.id }}"{% if account.mailaddr2.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[mail address 3] 
+        {% if validate %}
+            {{ validate.newmail2.errors }}
+        {% endif %}
+            <li>
+                new mailaddress <input name="newmail2" type="text" size="40">
+            </li>
+        {% if validate %}
+            {{ validate.mailaddr3.errors }}
+        {% endif %}
+            <li>[{{ key_string.mailaddr3 }}] 
                 <select name="mailaddr3" size="1">
-                    <option value="none"{% if not account.mailaddr3 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.mailaddr3 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.new }}">[Add new mail address]</option>
         {% for mail in mail_list %}
                     <option value="{{ mail.id }}"{% if account.mailaddr3.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[address] 
+        {% if validate %}
+            {{ validate.newmail3.errors }}
+        {% endif %}
+            <li>
+                new mailaddress <input name="newmail3" type="text" size="40">
+            </li>
+        {% if validate %}
+            {{ validate.address.errors }}
+        {% endif %}
+            <li>[{{ key_string.address }}] 
                 <select name="address" size="1">
-                    <option value="none"{% if not account.address %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.address %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.new }}">[Add new address]</option>
         {% for addr in addr_list %}
                     <option value="{{ addr.id }}"{% if account.address.id == addr.id %} selected{% endif %}>{{ addr.address_text }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[phone number] 
+        {% if validate %}
+            {{ validate.newaddress.errors }}
+        {% endif %}
+            <li>
+                new address <input name="newaddress" type="text" size="40">
+            </li>
+        {% if validate %}
+            {{ validate.phonenum.errors }}
+        {% endif %}
+            <li>[{{ key_string.phonenum }}] 
                 <select name="phonenum" size="1">
-                    <option value="none"{% if not account.phonenum %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.phonenum %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.new }}">[Add new number]</option>
         {% for phone in phone_list %}
                     <option value="{{ phone.id }}"{% if account.phonenum.id == phone.id %} selected{% endif %}>{{ phone.phonenum_text }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[account link 1] 
+        {% if validate %}
+            {{ validate.newphonenum.errors }}
+        {% endif %}
+            <li>
+                new phone number <input name="newphonenum" type="text" size="40">
+            </li>
+        {% if validate %}
+            {{ validate.link1.errors }}
+        {% endif %}
+            <li>[{{ key_string.acclink1 }}] 
                 <select name="link1" size="1">
-                    <option value="none"{% if not account.link1 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.link1 %} selected{% endif %}>----</option>
         {% for acc in account_list %}
                     <option value="{{ acc.id }}"{% if account.link1.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[account link 2] 
+        {% if validate %}
+            {{ validate.link2.errors }}
+        {% endif %}
+            <li>[{{ key_string.acclink2 }}] 
                 <select name="link2" size="1">
-                    <option value="none"{% if not account.link2 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.link2 %} selected{% endif %}>----</option>
         {% for acc in account_list %}
                     <option value="{{ acc.id }}"{% if account.link2.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[account link 3] 
+        {% if validate %}
+            {{ validate.link3.errors }}
+        {% endif %}
+            <li>[{{ key_string.acclink3 }}] 
                 <select name="link3" size="1">
-                    <option value="none"{% if not account.link3 %} selected{% endif %}>----</option>
+                    <option value="{{ select_option.blank }}"{% if not account.link3 %} selected{% endif %}>----</option>
         {% for acc in account_list %}
                     <option value="{{ acc.id }}"{% if account.link3.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
         {% endfor %}
                 </select>
             </li>
-            <li>[multi factor auth type] 
+        {% if validate %}
+            {{ validate.multifactor_type.errors }}
+        {% endif %}
+            <li>[{{ key_string.multitype }}] 
                 <input name="name" type="multifactor_type" size="40" value="{% if account.multifactorauth_type %}{{ account.multifactorauth_type }}{% endif %}">
             </li>
-            <li>[multi factor auth info] 
+        {% if validate %}
+            {{ validate.multifactor_info.errors }}
+        {% endif %}
+            <li>[{{ key_string.multiinfo }}] 
                 <input name="name" type="multifactor_info" size="40" value="{% if account.multifactorauth_id %}{{ account.multifactorauth_id }}{% endif %}">
             </li>
-            <li>[secret question 1] 
+        {% if validate %}
+            {{ validate.secq1.errors }}
+        {% endif %}
+            <li>[{{ key_string.secretq1 }}] 
                 <input name="name" type="secq1" size="40" value="{% if account.secret_q1 %}{{ account.secret_q1 }}{% endif %}">
             </li>
-            <li>[secret answer 1] 
+        {% if validate %}
+            {{ validate.seca1.errors }}
+        {% endif %}
+            <li>[{{ key_string.secreta1 }}] 
                 <input name="name" type="seca1" size="40" value="{% if account.secret_a1 %}{{ account.secret_a1 }}{% endif %}">
             </li>
-            <li>[secret question 2] 
+        {% if validate %}
+            {{ validate.secq2.errors }}
+        {% endif %}
+            <li>[{{ key_string.secretq2 }}] 
                 <input name="name" type="secq2" size="40" value="{% if account.secret_q2 %}{{ account.secret_q2 }}{% endif %}">
             </li>
-            <li>[secret answer 2] 
+        {% if validate %}
+            {{ validate.seca2.errors }}
+        {% endif %}
+            <li>[{{ key_string.secreta2 }}] 
                 <input name="name" type="seca2" size="40" value="{% if account.secret_a2 %}{{ account.secret_a2 }}{% endif %}">
             </li>
-            <li>[secret question 3] 
+        {% if validate %}
+            {{ validate.secq3.errors }}
+        {% endif %}
+            <li>[{{ key_string.secretq3 }}] 
                 <input name="name" type="secq3" size="40" value="{% if account.secret_q3 %}{{ account.secret_q3 }}{% endif %}">
             </li>
-            <li>[secret answer 3] 
+        {% if validate %}
+            {{ validate.seca3.errors }}
+        {% endif %}
+            <li>[{{ key_string.secreta3 }}] 
                 <input name="name" type="seca3" size="40" value="{% if account.secret_a3 %}{{ account.secret_a3 }}{% endif %}">
             </li>
-            <li>[account register date] 
+        {% if validate %}
+            {{ validate.register_date.errors }}
+        {% endif %}
+            <li>[{{ key_string.registerdate }}] 
                 <input type="date" name="register_date"{% if account.account_register_date %} value="{{ account.account_register_date|date:"Y-m-d" }}"{% endif %}>
             </li>
-            <li>[account unregister date] 
+        {% if validate %}
+            {{ validate.unregister_date.errors }}
+        {% endif %}
+            <li>[{{ key_string.unregisterdate }}] 
                 <input type="date" name="unregister_date"{% if account.account_unregister_date %} value="{{ account.account_unregister_date|date:"Y-m-d" }}"{% endif %}>
             </li>
-            <li>[memo] 
+        {% if validate %}
+            {{ validate.memo.errors }}
+        {% endif %}
+            <li>[{{ key_string.memo }}] 
                 <textarea name="memo" rows="5" cols="40">{% if account.memo %}{{ account.memo }}{% endif %}</textarea>
         </ul>
         <input type="submit" value="Submit" />

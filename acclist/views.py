@@ -4,9 +4,20 @@ from django.http import HttpResponse, Http404
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 # from django.views import generic
+#from django.views.decorators.http import require_http_methods
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.db import IntegrityError, transaction
 
 from accounts.models import User
 from .models import *
+import json
+from .lib.definitions.valuename import *
+from .lib.definitions.message import *
+from .lib.definitions.specialconsts import *
+#from .lib.logic.util import *
+from .lib.form.update import *
+from .lib.logic.update import *
 
 #class IndexView(generic.ListView):
 #    template_name = 'acclist/index.html'
@@ -39,7 +50,7 @@ def alllist(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def accdetail(request, username, accid, fmt):
+def accdetail(request, username, accid, fmt, relay=None):
     account = get_object_or_404(Account,
         Q(accup_user_id_id__accup_user_name=username),
         Q(id=accid))
@@ -47,6 +58,8 @@ def accdetail(request, username, accid, fmt):
     context = {
         'title_text': 'Account detail',
         'account': account,
+        'key_string': KEY_STRING,
+        'relay': relay,
     }
     return HttpResponse(template.render(context, request))
 
@@ -62,7 +75,7 @@ def maillinkedlist(request, username, mailid, fmt):
     }
     return HttpResponse(template_acc.render(context_acc, request))
 
-def updateform(request, username, accid, fmt):
+def updateform(request, username, accid, fmt, relay=None, validate=None):
     account = get_object_or_404(Account,
         Q(accup_user_id_id__accup_user_name=username),
         Q(id=accid))
@@ -90,9 +103,62 @@ def updateform(request, username, accid, fmt):
         'addr_list': addr_list,
         'phone_list': phone_list,
         'account_list': account_list,
+        'key_string': KEY_STRING,
+        'select_option': SELECT_OPTION,
+        'relay': relay,
+        'validate': validate,
     }
     return HttpResponse(template.render(context, request))
 
-#def update(request, username, accid):
+def update(request, username, accid, fmt):
+    # validate params
+    params = None
+    if fmt == 'html':
+        params = UpdateAccountForm(request.POST)
+    # only html format request is allowed, at least for now..
+    #elif fmt == 'json':
+    #    params = UpdateAccountForm(json.loads(request.body))
+    else:
+        raise Http404
+    # main processing
+    if not params.is_valid():
+        # todo
+        if fmt == 'html':
+            return updateform(request, username, accid, fmt,
+                relay=None, validate=params)
+        # only html format request is allowed, at least for now..
+        #elif fmt == 'json':
+        #    HttpResponseBadRequest(json.dumps(params.errors))
+    account = get_object_or_404(Account,
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(id=accid))
+    # todo
+    try:
+        with transaction.atomic():
+            udate_account(account.accup_user_id, account, form)
+    except IntegrityError as e:
+        # handle exception
+        raise "transaction failed"
+    except AcclistException as e:
+        # handle exception
+        raise e
 
+    # return response
+    if fmt == 'html':
+        return HttpResponseRedirect(
+            reverse('acclist:accupdatesuccess', args=
+                (fmt, username, accid,)))
+    # only html format request is allowed, at least for now..
+    #elif fmt == 'json':
+    #    return HttpResponseRedirect(
+    #        reverse('acclist:accdetail', args=
+    #            (fmt, username, accid,)))
+
+def updatesuccess(request, username, accid, fmt):
+    template = loader.get_template('common/success.html')
+    context = {
+        'message': RESPONSE_MESSAGE['success'],
+    }
+    return accdetail(request, username, accid, fmt,
+        template.render(context, request))
 
