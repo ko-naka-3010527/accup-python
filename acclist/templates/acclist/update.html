@@ -1,15 +1,36 @@
 {% extends "base.html" %}
 {% block contents %}
-    {% if account and mail_list and service_list and addr_list and phone_list and account_list %}
+    {% if newacc or account and mail_list and service_list and addr_list and phone_list and account_list %}
     <h1>Update your account</h1>
-    <form action="{% url 'acclist:accupdate' 'html' account.accup_user_id.accup_user_name account.id %}" method="post">
         {% if validate %}
+    <div class="validate">
             {{ validate.non_field_errors }}
+    </div>
+        {% endif %}
+        {% if relay %}
+    <div class="error">
+        <div class="error_message">
+            {{ relay.result.message }}
+        </div>
+        <div class="error_detail">
+            {% for d in relay.result.py_e %}
+            <div class="msg">{{ d }}</div>
+            {% endfor %}
+        </div>
+    </div>
+        {% endif %}
+        {% if newacc %}
+    <form action="{% url 'acclist:accinsert' 'html' username %}" method="post">
+        <p>
+            user name: {{ username }}
+        </p>
+        {% else %}
+    <form action="{% url 'acclist:accupdate' 'html' account.accup_user_id.accup_user_name account.id %}" method="post">
+        <p>
+            account id: {{ account.id }}, user name: {{ account.accup_user_id.accup_user_name }}
+        </p>
         {% endif %}
         {% csrf_token %}
-        <p>
-            account id: {{ account.id }}, account name: {{ account.accup_user_id.accup_user_name }}
-        </p>
         <ul style="list-style: none;">
         {% if validate %}
             {{ validate.status.errors }}
@@ -253,7 +274,11 @@
         </ul>
         <input type="submit" value="Submit" />
     </form>
+        {% if newacc %}
+        {% else %}
     <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.id %}">Go back to account detail</a>
+        {% endif %}
+    <a href="{% url 'acclist:alllist' 'html' username %}">Go back to account list</a>
     {% else %}
     <p>Failed to load account data.</p>
     {% endif %}

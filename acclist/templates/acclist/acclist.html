@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block contents %}
     <h1>Account list</h1>
+    <p class="description">{{ description|safe }}{{ key_value }}</p>
+    <p>
+        <a href="{% url 'acclist:accinsertform' 'html' username %}">Register new account info</a>
+    </p>
+    <p class="count">
+        Listed account(s): {{ count }}
+    </p>
     {% if account_list %}
     <ul>
         {% for acc in account_list %}
-        <li><a href="{% url 'acclist:accdetail' 'html' acc.accup_user_id.accup_user_name acc.id %}">
+        <li><a href="{% url 'acclist:accdetail' 'html' username acc.id %}">
             {{ acc.service.service_name }} - {{ acc.name }}
         </a></li>
         {% endfor %}
@@ -12,4 +19,5 @@
     {% else %}
     <p>No accounts are registered.</p>
     {% endif %}
+    <a href="{% url 'acclist:alllist' 'html' username %}">Go back to account list</a>
 {% endblock contents %}

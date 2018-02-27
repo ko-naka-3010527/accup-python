@@ -14,10 +14,14 @@ from .models import *
 import json
 from .lib.definitions.valuename import *
 from .lib.definitions.message import *
+from .lib.definitions.message_error_update import *
 from .lib.definitions.specialconsts import *
 #from .lib.logic.util import *
+from .lib.exception.acclistexception import *
 from .lib.form.update import *
 from .lib.logic.update import *
+
+import sys
 
 #class IndexView(generic.ListView):
 #    template_name = 'acclist/index.html'
@@ -39,6 +43,15 @@ def alllist(request, username, fmt):
     mail_list = Mailaddr.objects.filter(
         accup_user_id_id__accup_user_name=username
     ).order_by('mailaddr_text')
+    address_list = Address.objects.filter(
+        accup_user_id_id__accup_user_name=username
+    ).order_by('address_text')
+    phonenum_list = Phonenum.objects.filter(
+        accup_user_id_id__accup_user_name=username
+    ).order_by('phonenum_text')
+    service_list = Service.objects.filter(
+        accup_user_id_id__accup_user_name=username
+    ).order_by('service_name')
     account_list = Account.objects.filter(
         accup_user_id_id__accup_user_name=username
     ).order_by('service__service_name')
@@ -47,6 +60,10 @@ def alllist(request, username, fmt):
         'title_text': 'Account list',
         'account_list': account_list,
         'mail_list': mail_list,
+        'address_list': address_list,
+        'phonenum_list': phonenum_list,
+        'service_list': service_list,
+        'username': username,
     }
     return HttpResponse(template.render(context, request))
 
@@ -60,10 +77,33 @@ def accdetail(request, username, accid, fmt, relay=None):
         'account': account,
         'key_string': KEY_STRING,
         'relay': relay,
+        'username': username,
     }
     return HttpResponse(template.render(context, request))
 
+def servicelinkedlist(request, username, serviceid, fmt):
+    service_obj = get_object_or_404(Service,
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(id=serviceid))
+    account_list = Account.objects.filter(
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(service=serviceid)
+    ).order_by('service__service_name')
+    template_acc = loader.get_template('acclist/acclist.html')
+    context_acc = {
+        'title_text': 'Account list',
+        'account_list': account_list,
+        'count': len(account_list),
+        'username': username,
+        'key_value': service_obj.service_name,
+        'description': DESCRIPTION_MESSAGE['servicelinkedlist'],
+    }
+    return HttpResponse(template_acc.render(context_acc, request))
+
 def maillinkedlist(request, username, mailid, fmt):
+    mailaddr_obj = get_object_or_404(Mailaddr,
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(id=mailid))
     account_list = Account.objects.filter(
         Q(accup_user_id_id__accup_user_name=username),
         Q(mailaddr1=mailid) | Q(mailaddr2=mailid) | Q(mailaddr3=mailid)
@@ -72,13 +112,59 @@ def maillinkedlist(request, username, mailid, fmt):
     context_acc = {
         'title_text': 'Account list',
         'account_list': account_list,
+        'count': len(account_list),
+        'username': username,
+        'key_value': mailaddr_obj.mailaddr_text,
+        'description': DESCRIPTION_MESSAGE['maillinkedlist'],
     }
     return HttpResponse(template_acc.render(context_acc, request))
 
-def updateform(request, username, accid, fmt, relay=None, validate=None):
-    account = get_object_or_404(Account,
+def addresslinkedlist(request, username, addressid, fmt):
+    address_obj = get_object_or_404(Address,
         Q(accup_user_id_id__accup_user_name=username),
-        Q(id=accid))
+        Q(id=addressid))
+    account_list = Account.objects.filter(
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(address=addressid)
+    ).order_by('service__service_name')
+    template_acc = loader.get_template('acclist/acclist.html')
+    context_acc = {
+        'title_text': 'Account list',
+        'account_list': account_list,
+        'count': len(account_list),
+        'username': username,
+        'key_value': address_obj.address_text,
+        'description': DESCRIPTION_MESSAGE['addresslinkedlist'],
+    }
+    return HttpResponse(template_acc.render(context_acc, request))
+
+def phonenumlinkedlist(request, username, phonenumid, fmt):
+    phonenum_obj = get_object_or_404(Phonenum,
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(id=phonenumid))
+    account_list = Account.objects.filter(
+        Q(accup_user_id_id__accup_user_name=username),
+        Q(phonenum=phonenumid)
+    ).order_by('service__service_name')
+    template_acc = loader.get_template('acclist/acclist.html')
+    context_acc = {
+        'title_text': 'Account list',
+        'account_list': account_list,
+        'count': len(account_list),
+        'username': username,
+        'key_value': phonenum_obj.phonenum_text,
+        'description': DESCRIPTION_MESSAGE['phonenumlinkedlist'],
+    }
+    return HttpResponse(template_acc.render(context_acc, request))
+
+def updateform_lender(
+    request, username, accid, fmt, newacc=False, relay=None, validate=None):
+    if accid is None or newacc:
+        account = Account()
+    else:
+        account = get_object_or_404(Account,
+            Q(accup_user_id_id__accup_user_name=username),
+            Q(id=accid))
     mail_list = Mailaddr.objects.filter(
         accup_user_id_id__accup_user_name=username
     ).order_by('mailaddr_text')
@@ -94,7 +180,6 @@ def updateform(request, username, accid, fmt, relay=None, validate=None):
     account_list = Account.objects.filter(
         accup_user_id_id__accup_user_name=username
     ).order_by('modifieddate')
-    template = loader.get_template('acclist/update.html')
     context = {
         'title_text': 'Update account',
         'account': account,
@@ -107,8 +192,18 @@ def updateform(request, username, accid, fmt, relay=None, validate=None):
         'select_option': SELECT_OPTION,
         'relay': relay,
         'validate': validate,
+        'newacc': newacc,
+        'username': username,
     }
-    return HttpResponse(template.render(context, request))
+    return render(request, 'acclist/update.html', context)
+
+def updateform(request, username, accid, fmt):
+    return HttpResponse(
+        updateform_lender(request, username, accid, fmt))
+
+def insertform(request, username, fmt):
+    return HttpResponse(
+        updateform_lender(request, username, None, fmt, True))
 
 def update(request, username, accid, fmt):
     # validate params
@@ -124,40 +219,79 @@ def update(request, username, accid, fmt):
     if not params.is_valid():
         # todo
         if fmt == 'html':
-            return updateform(request, username, accid, fmt,
-                relay=None, validate=params)
+            result = UPDATE_RESPONSE['update_parameter_error']
+            return updateform_lender(
+                request, username, accid, fmt, False,
+                relay={'result': result},
+                validate=params)
         # only html format request is allowed, at least for now..
         #elif fmt == 'json':
         #    HttpResponseBadRequest(json.dumps(params.errors))
-    account = get_object_or_404(Account,
-        Q(accup_user_id_id__accup_user_name=username),
-        Q(id=accid))
-    # todo
+    if accid is None:
+        account = None
+    else:
+        account = get_object_or_404(Account,
+            Q(accup_user_id_id__accup_user_name=username),
+            Q(id=accid))
+    user = get_object_or_404(User, Q(accup_user_name=username))
+    # save updated information
+    result = None
+    acc = None
     try:
         with transaction.atomic():
-            udate_account(account.accup_user_id, account, form)
+            acc = udate_account(user.id, account, params, user)
+        result = UPDATE_RESPONSE['ok']
     except IntegrityError as e:
-        # handle exception
-        raise "transaction failed"
+        print(sys.exc_info())
+        result = UPDATE_RESPONSE['transaction_error']
     except AcclistException as e:
-        # handle exception
+        result = e.acclist_err_dict
+    except Exception as e:
+        result = UPDATE_RESPONSE['unexpected_error']
+        print(sys.exc_info())
+        # for test, raise it again
         raise e
 
     # return response
     if fmt == 'html':
-        return HttpResponseRedirect(
-            reverse('acclist:accupdatesuccess', args=
-                (fmt, username, accid,)))
+        if result['code'] != 0:
+            if accid is None:
+                return updateform_lender(
+                    request, username, accid, fmt,
+                    True, relay={'result': result})
+            else:
+                return updateform_lender(
+                    request, username, accid, fmt,
+                    False, relay={'result': result})
+        if accid is None:
+            return HttpResponseRedirect(
+                reverse('acclist:accinsertsuccess', args=
+                    (fmt, username, acc.id)))
+        else:
+            return HttpResponseRedirect(
+                reverse('acclist:accupdatesuccess', args=
+                    (fmt, username, accid)))
     # only html format request is allowed, at least for now..
     #elif fmt == 'json':
     #    return HttpResponseRedirect(
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+def insert(request, username, fmt):
+    return update(request, username, None, fmt)
+
 def updatesuccess(request, username, accid, fmt):
     template = loader.get_template('common/success.html')
     context = {
-        'message': RESPONSE_MESSAGE['success'],
+        'message': RESPONSE_MESSAGE['update_success'],
+    }
+    return accdetail(request, username, accid, fmt,
+        template.render(context, request))
+
+def insertsuccess(request, username, accid, fmt):
+    template = loader.get_template('common/success.html')
+    context = {
+        'message': RESPONSE_MESSAGE['insert_success'],
     }
     return accdetail(request, username, accid, fmt,
         template.render(context, request))
