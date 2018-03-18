@@ -12,49 +12,7 @@ def is_new(param):
 def is_blank(param):
     return param == SELECT_OPTION['blank']
 
-def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
-    if is_blank(mail_input):
-        return None
-    elif is_new(mail_input):
-        # register new mail address
-        if (new_mail_input is None) or new_mail_input == "":
-            e = AcclistException()
-            e.set_params(
-                UPDATE_RESPONSE['param_mailaddr' + str(num)])
-            raise e
-        mail = Mailaddr()
-        mail.accup_user_id = user
-        mail.mailaddr_text = new_mail_input
-        try:
-            mail.full_clean()
-        except ValidationError as e:
-            a_e = AcclistException()
-            a_e.set_params(
-                UPDATE_RESPONSE['param_mailaddr' + str(num) + '_validate'],
-                py_e=json.dumps(e.message_dict))
-            raise a_e
-        try:
-            mail.save()
-            mail.refresh_from_db()
-        except DatabaseError:
-            e = AcclistException()
-            e.set_params(
-                UPDATE_RESPONSE['db_mail' + str(num) + '_save'])
-            raise e
-        return mail
-    else:
-        try:
-            mail_tmp = Mailaddr.objects.get(id=mail_input)
-        except Mailaddr.DoesNotExist:
-            mail_tmp = None
-        if mail_tmp is None or mail_tmp.accup_user_id.id != accup_user_id:
-            e = AcclistException()
-            e.set_params(
-                UPDATE_RESPONSE['user_mail' + str(num) + '_mismatch'])
-            raise e
-        return mail_tmp
-
-def update_account(accup_user_id, account, form, user):
+def delete_account(accup_user_id, account, form, user):
     # create new record of 'Account' if account is None
     if account is None:
         acc = Account()

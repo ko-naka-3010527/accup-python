@@ -82,6 +82,28 @@ UPDATE_RESPONSE = {
         {'code': 209, 'message': "アカウント関連付け2で指定されたアカウント情報は存在しません。"},
     'user_link3_mismatch':
         {'code': 210, 'message': "アカウント関連付け3で指定されたアカウント情報は存在しません。"},
-
 }
 
+DELETE_RESPONSE = {
+    # ok message
+    'ok':
+        {'code': 0, 'message': "アカウント情報を削除しました。"},
+
+    # general errors
+    'unexpected_error':
+        {'code': 1, 'message': "予期しないエラーが発生しました。"},
+    'transaction_error':
+        {'code': 2, 'message': "アカウント情報を正常に削除できませんでした。"},
+}
+
+LINKED_INFO_DELETE_RESPONSE = {
+    # ok message
+    'ok':
+        {'code': 0, 'message': "アカウント関連情報を削除しました。"},
+
+    # general errors
+    'unexpected_error':
+        {'code': 1, 'message': "予期しないエラーが発生しました。"},
+    'transaction_error':
+        {'code': 2, 'message': "アカウント情報を正常に削除できませんでした。"},
+}

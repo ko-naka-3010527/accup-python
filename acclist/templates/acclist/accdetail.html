@@ -1,60 +1,181 @@
 {% extends "base.html" %}
 {% block contents %}
+    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
+    {% if title_text %}
+    <h1 class="page_title">{{ title_text }}</h1>
+    {% endif %}
     {% if relay %}
-        {{ relay }}
+    <div class="error">
+        <div class="error_message">
+        {{ relay.result.message }}
+        </div>
+        <div class="error_detail">
+        {% for d in relay.result.py_e %}
+            <div class="msg">{{ d }}</div>
+        {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if rendered %}
+        {{ rendered }}
+    {% endif %}
+    {% if message %}
+    <div class="message">
+        {{ message }}
+    </div>
     {% endif %}
     {% if account %}
-    <ul>
-        <li>(id) {{ account.id }}</li>
-        <li>[{{ key_string.accupid }}] {{ account.accup_user_id.accup_user_name }}</li>
-        <li>[{{ key_string.status }}] {{ account.status }}</li>
-        <li>[{{ key_string.service }}] {{ account.service.service_name }}</li>
-        <li>[{{ key_string.name }}] {{ account.name }}</li>
-        <li>[{{ key_string.password }}] {{ account.passwd }}</li>
-        <li>[{{ key_string.mailaddr1 }}] {{ account.mailaddr1.mailaddr_text }}</li>
-        <li>[{{ key_string.mailaddr2 }}] {{ account.mailaddr2.mailaddr_text }}</li>
-        <li>[{{ key_string.mailaddr3 }}] {{ account.mailaddr3.mailaddr_text }}</li>
-        <li>[{{ key_string.address }}] {{ account.address.address_text }}</li>
-        <li>[{{ key_string.phonenum }}] {{ account.phonenum.phonenum_text }}</li>
-        <li>[{{ key_string.acclink1 }}]
+    <p class="button_set">
+        <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}'">update account</button>
+        <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' account.accup_user_id.accup_user_name account.id %}'">delete account</button>
+    </p>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>item</th>
+                <th>value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="listed_object">{{ key_string.status }}</td>
+                <td class="listed_object">{{ account.status }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.service }}</td>
+                <td class="listed_object">{{ account.service.service_name }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.name }}</td>
+                <td class="listed_object">{{ account.name }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.password }}</td>
+                <td class="listed_object">{{ account.passwd }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.mailaddr1 }}</td>
+                <td class="listed_object">{{ account.mailaddr1.mailaddr_text }}</td>
+            <tr>
+                <td class="listed_object">{{ key_string.mailaddr2 }}</td>
+                <td class="listed_object">{{ account.mailaddr2.mailaddr_text }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.mailaddr3 }}</td>
+                <td class="listed_object">{{ account.mailaddr3.mailaddr_text }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.address }}</td>
+                <td class="listed_object">{{ account.address.address_text }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.phonenum }}</td>
+                <td class="listed_object">{{ account.phonenum.phonenum_text }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.acclink1 }}</td>
+                <td class="listed_object">
         {% if account.link1_id %}
-                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link1_id %}">{{ account.link1.service.service_name }} - {{ account.link1.name }}</a>
-        {% else %}
-                n/a
+                    <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link1_id %}">{{ account.link1.service.service_name }} - {{ account.link1.name }}</a>
         {% endif %}
-        </li>
-        <li>[{{ key_string.acclink2 }}] 
+                </td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.acclink2 }}</td>
+                <td class="listed_object">
         {% if account.link2_id %}
-                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link2_id %}">{{ account.link2.service.service_name }} - {{ account.link2.name }}</a>
-        {% else %}
-                n/a
+                    <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link2_id %}">{{ account.link2.service.service_name }} - {{ account.link2.name }}</a>
         {% endif %}
-        </li>
-        <li>[{{ key_string.acclink3 }}] 
+                </td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.acclink3 }}</td>
+                <td class="listed_object">
         {% if account.link3_id %}
-                <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link3_id %}">{{ account.link3.service.service_name }} - {{ account.link3.name }}</a>
-        {% else %}
-                n/a
+                    <a href="{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.link3_id %}">{{ account.link3.service.service_name }} - {{ account.link3.name }}</a>
         {% endif %}
-        </li>
-        <li>[{{ key_string.multitype }}] {{ account.multifactorauth_type }}</li>
-        <li>[{{ key_string.multiinfo }}] {{ account.multifactorauth_id }}</li>
-        <li>[{{ key_string.secretq1 }}] {{ account.secret_q1 }}</li>
-        <li>[{{ key_string.secreta1 }}] {{ account.secret_a1 }}</li>
-        <li>[{{ key_string.secretq2 }}] {{ account.secret_q2 }}</li>
-        <li>[{{ key_string.secreta2 }}] {{ account.secret_a2 }}</li>
-        <li>[{{ key_string.secretq3 }}] {{ account.secret_q3 }}</li>
-        <li>[{{ key_string.secreta3 }}] {{ account.secret_a3 }}</li>
-        <li>[{{ key_string.registerdate }}] {{ account.account_register_date }}</li>
-        <li>[{{ key_string.unregisterdate }}] {{ account.account_unregister_date }}</li>
-        <li>[{{ key_string.memo }}] {{ account.memo }}</li>
-        <li>(createdate) {{ account.createdate }}</li>
-        <li>(modifieddate) {{ account.modifieddate }}</li>
-        <li>(deletedate) {{ account.deletedate }}</li>
-    </ul>
-    <a href="{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}">update account</a><br>
+                </td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.multitype }}</td>
+                <td class="listed_object">{{ account.multifactorauth_type }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.multiinfo }}</td>
+                <td class="listed_object">{{ account.multifactorauth_id }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secretq1 }}</td>
+                <td class="listed_object">{{ account.secret_q1 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secreta1 }}</td>
+                <td class="listed_object">{{ account.secret_a1 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secretq2 }}</td>
+                <td class="listed_object">{{ account.secret_q2 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secreta2 }}</td>
+                <td class="listed_object">{{ account.secret_a2 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secretq3 }}</td>
+                <td class="listed_object">{{ account.secret_q3 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.secreta3 }}</td>
+                <td class="listed_object">{{ account.secret_a3 }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.registerdate }}</td>
+                <td class="listed_object">
+        {% if account.account_register_date %}
+                    {{ account.account_register_date }}
+        {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.unregisterdate }}</td>
+                <td class="listed_object">
+        {% if account.account_unregister_date %}
+                    {{ account.account_unregister_date }}
+        {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="listed_object">{{ key_string.memo }}</td>
+                <td class="listed_object">{{ account.memo }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">(id)</td>
+                <td class="listed_object">{{ account.id }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">({{ key_string.accupid }})</td>
+                <td class="listed_object">{{ account.accup_user_id.accup_user_name }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">(createdate)</td>
+                <td class="listed_object">{{ account.createdate }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">(modifieddate)</td>
+                <td class="listed_object">{{ account.modifieddate }}</td>
+            </tr>
+            <tr>
+                <td class="listed_object">(deletedate)</td>
+                <td class="listed_object">{{ account.deletedate }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="button_set">
+        <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}'">update account</button>
+        <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' account.accup_user_id.accup_user_name account.id %}'">delete account</button>
+    </p>
     {% else %}
-    <p>The account does not exist.</p>
+    <p class="no_content_message">The account does not exist.</p>
     {% endif %}
-    <a href="{% url 'acclist:alllist' 'html' account.accup_user_id.accup_user_name %}">Go back to account list</a>
+    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
 {% endblock contents %}

@@ -26,24 +26,24 @@ class Account(models.Model):
     accup_user_id = models.ForeignKey(User,
         on_delete=models.CASCADE)
     status = models.SmallIntegerField(default=1)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
     passwd = models.CharField(max_length=100)
-    mailaddr1 = models.ForeignKey(Mailaddr, on_delete=models.CASCADE,
+    mailaddr1 = models.ForeignKey(Mailaddr, on_delete=models.PROTECT,
         related_name='mail_1', blank=True, null=True)
-    mailaddr2 = models.ForeignKey(Mailaddr, on_delete=models.CASCADE,
+    mailaddr2 = models.ForeignKey(Mailaddr, on_delete=models.PROTECT,
         related_name='mail_2', blank=True, null=True)
-    mailaddr3 = models.ForeignKey(Mailaddr, on_delete=models.CASCADE,
+    mailaddr3 = models.ForeignKey(Mailaddr, on_delete=models.PROTECT,
         related_name='mail_3', blank=True, null=True)
     address = models.ForeignKey(Address,
-        on_delete=models.CASCADE, blank=True, null=True)
+        on_delete=models.PROTECT, blank=True, null=True)
     phonenum = models.ForeignKey(Phonenum,
-        on_delete=models.CASCADE, blank=True, null=True)
-    link1 = models.ForeignKey('self', on_delete=models.CASCADE,
+        on_delete=models.PROTECT, blank=True, null=True)
+    link1 = models.ForeignKey('self', on_delete=models.SET_NULL,
         related_name='account_link_1', blank=True, null=True)
-    link2 = models.ForeignKey('self', on_delete=models.CASCADE,
+    link2 = models.ForeignKey('self', on_delete=models.SET_NULL,
         related_name='account_link_2', blank=True, null=True)
-    link3 = models.ForeignKey('self', on_delete=models.CASCADE,
+    link3 = models.ForeignKey('self', on_delete=models.SET_NULL,
         related_name='account_link_3', blank=True, null=True)
     multifactorauth_type = models.CharField(
         max_length=100, blank=True, null=True)

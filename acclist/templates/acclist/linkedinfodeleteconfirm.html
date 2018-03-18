@@ -1,0 +1,22 @@
+    {% if related_acounts %}
+        <p class="error_message">
+            この情報を使用しているアカウントが登録されているため削除できません。<br>
+            先にアカウント情報を修正してください。
+        </p>
+    {% else %}
+        <p class="deleteconfirm_message">
+            アカウント関連情報 <span class="info_kind">{{ kind_of_info_text }}</span> の <span class="target_info">{{ target_info }}</span> を削除します。
+        </p>
+        <p class="deleteconfirm_message">
+            削除した情報は復元できません。削除してよろしいですか？
+        </p>
+        <p class="deleteconfirm_button">
+            <button type="button" class="btn btn-danger" onclick="location.href='{% url info_delete_url_key 'html' username info_id %}'">
+                はい、削除します
+            </button>
+            <button type="button" class="btn btn-default" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">
+                いいえ、削除しません
+            </button>
+        </p>
+    {% endif %}
+
