@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db import IntegrityError, transaction
 
-from accounts.models import User
+from accounts.models import User as Acclistuser
 from .models import *
 import json
 from .lib.definitions.common import *
@@ -595,7 +595,7 @@ def update(request, username, accid, fmt):
         account = get_object_or_404(Account,
             Q(accup_user_id__accup_user_name=username),
             Q(id=accid))
-    user = get_object_or_404(User, Q(accup_user_name=username))
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
     # save updated information
     result = None
     acc = None
