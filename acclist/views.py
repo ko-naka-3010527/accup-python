@@ -8,8 +8,12 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db import IntegrityError, transaction
+from django.contrib.auth.decorators import login_required
 
 from accounts.models import User as Acclistuser
+from accounts.permissions import is_users_url
+from accounts.views import login_redirect
+from .renders import *
 from .models import *
 import json
 from .lib.definitions.common import *
@@ -24,23 +28,23 @@ from .lib.logic.update import *
 
 import sys
 
-#class IndexView(generic.ListView):
-#    template_name = 'acclist/index.html'
-#    context_object_name = 'account_list'
 
-#    def get_queryset(self):
-#        return Account.objects.filter(
-#            accup_user_id_id__accup_user_name=username
-#        ).order_by('service__service_name')
+login_url_def_name = 'accounts:login'
 
-#class DetailView(generic.DetailView):
-#    model = Account
-#    template_name = 'acclist/detail.html'
+#
+# view functions
+#
 
+@login_required(login_url=login_url_def_name)
 def index(request):
-    return HttpResponse("Hello, world. You're at the 'acclist' index.")
+    return login_redirect(request)
 
+@login_required(login_url=login_url_def_name)
 def alllist(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     mail_list = Mailaddr.objects.filter(
         accup_user_id__accup_user_name=username
     ).order_by('mailaddr_text')
@@ -68,49 +72,36 @@ def alllist(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def accdetail_render(request, username, account, relay, rendered=None):
-    template = loader.get_template('acclist/accdetail.html')
-    context = {
-        'title_text': 'Account detail',
-        'account': account,
-        'key_string': KEY_STRING,
-        'relay': relay,
-        'rendered': rendered,
-        'username': username,
-    }
-    return template.render(context, request)
-
+@login_required(login_url=login_url_def_name)
 def accdetail(request, username, accid, fmt, relay=None, rendered=None):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     account = get_object_or_404(Account,
         Q(accup_user_id__accup_user_name=username),
         Q(id=accid))
     return HttpResponse(
         accdetail_render(request, username, account, relay, rendered))
 
-def servicelinkedlist_render(request, service_obj, username, relay=None):
-    account_list = Account.objects.filter(
-        Q(accup_user_id__accup_user_name=username),
-        Q(service=service_obj.id)
-    ).order_by('service__service_name')
-    context = {
-        'title_text': 'Account list',
-        'account_list': account_list,
-        'count': len(account_list),
-        'username': username,
-        'key_value': service_obj.service_name,
-        'description': DESCRIPTION_MESSAGE['servicelinkedlist'],
-        'rendered': relay,
-    }
-    return render(request, 'acclist/acclist.html', context)
-
+@login_required(login_url=login_url_def_name)
 def servicelinkedlist(request, username, serviceid, fmt, relay=None):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     service_obj = get_object_or_404(Service,
         Q(accup_user_id__accup_user_name=username),
         Q(id=serviceid))
     return HttpResponse(servicelinkedlist_render(
         request, service_obj, username, relay))
 
+@login_required(login_url=login_url_def_name)
 def servicedeleteconfirm(request, username, serviceid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # get account object
     service = get_object_or_404(Service,
         Q(accup_user_id__accup_user_name=username),
@@ -145,9 +136,14 @@ def servicedeleteconfirm(request, username, serviceid, fmt):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def servicedelete(request, username, serviceid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     service = get_object_or_404(Service,
-        Q(accup_user_id_id__accup_user_name=username),
+        Q(accup_user_id__accup_user_name=username),
         Q(id=serviceid))
     # delete account record
     result = None
@@ -183,7 +179,12 @@ def servicedelete(request, username, serviceid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def servicedeletesuccess(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('acclist/linkedinfodeletesuccess.html')
     context = {
         'title_text': 'Service has been deleted.',
@@ -192,30 +193,24 @@ def servicedeletesuccess(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def maillinkedlist_render(request, mailaddr_obj, username, relay=None):
-    account_list = Account.objects.filter(
-        Q(accup_user_id__accup_user_name=username),
-        Q(mailaddr1=mailaddr_obj.id) | Q(mailaddr2=mailaddr_obj.id) | Q(mailaddr3=mailaddr_obj.id)
-    ).order_by('service__service_name')
-    context = {
-        'title_text': 'Account list',
-        'account_list': account_list,
-        'count': len(account_list),
-        'username': username,
-        'key_value': mailaddr_obj.mailaddr_text,
-        'description': DESCRIPTION_MESSAGE['maillinkedlist'],
-        'rendered': relay,
-    }
-    return render(request, 'acclist/acclist.html', context)
-
+@login_required(login_url=login_url_def_name)
 def maillinkedlist(request, username, mailid, fmt, relay=None):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     mailaddr_obj = get_object_or_404(Mailaddr,
         Q(accup_user_id__accup_user_name=username),
         Q(id=mailid))
     return HttpResponse(maillinkedlist_render(
         request, mailaddr_obj, username, relay))
 
+@login_required(login_url=login_url_def_name)
 def maildeleteconfirm(request, username, mailid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # get account object
     mailaddr = get_object_or_404(Mailaddr,
         Q(accup_user_id__accup_user_name=username),
@@ -260,9 +255,14 @@ def maildeleteconfirm(request, username, mailid, fmt):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def maildelete(request, username, mailid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     mailaddr = get_object_or_404(Mailaddr,
-        Q(accup_user_id_id__accup_user_name=username),
+        Q(accup_user_id__accup_user_name=username),
         Q(id=mailid))
     # delete account record
     result = None
@@ -298,7 +298,12 @@ def maildelete(request, username, mailid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def maildeletesuccess(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('acclist/linkedinfodeletesuccess.html')
     context = {
         'title_text': 'Mail address has been deleted.',
@@ -307,30 +312,24 @@ def maildeletesuccess(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def addresslinkedlist_render(request, address_obj, username, relay=None):
-    account_list = Account.objects.filter(
-        Q(accup_user_id__accup_user_name=username),
-        Q(address=address_obj.id)
-    ).order_by('service__service_name')
-    context = {
-        'title_text': 'Account list',
-        'account_list': account_list,
-        'count': len(account_list),
-        'username': username,
-        'key_value': address_obj.address_text,
-        'description': DESCRIPTION_MESSAGE['addresslinkedlist'],
-        'rendered': relay,
-    }
-    return render(request, 'acclist/acclist.html', context)
-
+@login_required(login_url=login_url_def_name)
 def addresslinkedlist(request, username, addressid, fmt, relay=None):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     address_obj = get_object_or_404(Address,
         Q(accup_user_id__accup_user_name=username),
         Q(id=addressid))
     return HttpResponse(addresslinkedlist_render(
         request, address_obj, username, relay))
 
+@login_required(login_url=login_url_def_name)
 def addressdeleteconfirm(request, username, addressid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # get account object
     address = get_object_or_404(Address,
         Q(accup_user_id__accup_user_name=username),
@@ -365,9 +364,14 @@ def addressdeleteconfirm(request, username, addressid, fmt):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def addressdelete(request, username, addressid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     address = get_object_or_404(Address,
-        Q(accup_user_id_id__accup_user_name=username),
+        Q(accup_user_id__accup_user_name=username),
         Q(id=addressid))
     # delete account record
     result = None
@@ -403,7 +407,12 @@ def addressdelete(request, username, addressid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def addressdeletesuccess(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('acclist/linkedinfodeletesuccess.html')
     context = {
         'title_text': 'Address has been deleted.',
@@ -412,30 +421,24 @@ def addressdeletesuccess(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def phonenumlinkedlist_render(request, phonenum_obj, username, relay=None):
-    account_list = Account.objects.filter(
-        Q(accup_user_id__accup_user_name=username),
-        Q(phonenum=phonenum_obj.id)
-    ).order_by('service__service_name')
-    context = {
-        'title_text': 'Account list',
-        'account_list': account_list,
-        'count': len(account_list),
-        'username': username,
-        'key_value': phonenum_obj.phonenum_text,
-        'description': DESCRIPTION_MESSAGE['phonenumlinkedlist'],
-        'rendered': relay,
-    }
-    return render(request, 'acclist/acclist.html', context)
-
+@login_required(login_url=login_url_def_name)
 def phonenumlinkedlist(request, username, phonenumid, fmt, relay=None):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     phonenum_obj = get_object_or_404(Phonenum,
         Q(accup_user_id__accup_user_name=username),
         Q(id=phonenumid))
     return HttpResponse(phonenumlinkedlist_render(
         request, phonenum_obj, username, relay))
 
+@login_required(login_url=login_url_def_name)
 def phonenumdeleteconfirm(request, username, phonenumid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # get account object
     phonenum = get_object_or_404(Phonenum,
         Q(accup_user_id__accup_user_name=username),
@@ -470,7 +473,12 @@ def phonenumdeleteconfirm(request, username, phonenumid, fmt):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def phonenumdelete(request, username, phonenumid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     phonenum = get_object_or_404(Phonenum,
         Q(accup_user_id_id__accup_user_name=username),
         Q(id=phonenumid))
@@ -508,7 +516,12 @@ def phonenumdelete(request, username, phonenumid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def phonenumdeletesuccess(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('acclist/linkedinfodeletesuccess.html')
     context = {
         'title_text': 'Phonenum has been deleted.',
@@ -517,57 +530,30 @@ def phonenumdeletesuccess(request, username, fmt):
     }
     return HttpResponse(template.render(context, request))
 
-def updateform_render(
-    request, username, accid, fmt, newacc=False, relay=None, validate=None):
-    if accid is None or newacc:
-        account = Account()
-    else:
-        account = get_object_or_404(Account,
-            Q(accup_user_id__accup_user_name=username),
-            Q(id=accid))
-    mail_list = Mailaddr.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('mailaddr_text')
-    service_list = Service.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('service_name')
-    addr_list = Address.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('address_text')
-    phone_list = Phonenum.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('phonenum_text')
-    account_list = Account.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('modifieddate')
-    context = {
-        'title_text': 'Update account',
-        'account': account,
-        'mail_list': mail_list,
-        'service_list': service_list,
-        'addr_list': addr_list,
-        'phone_list': phone_list,
-        'account_list': account_list,
-        'key_string': KEY_STRING,
-        'other_string': OTHER_STRING,
-        'common_string': COMMON_STRING,
-        'select_option': SELECT_OPTION,
-        'relay': relay,
-        'validate': validate,
-        'newacc': newacc,
-        'username': username,
-    }
-    return render(request, 'acclist/update.html', context)
-
+@login_required(login_url=login_url_def_name)
 def updateform(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     return HttpResponse(
         updateform_render(request, username, accid, fmt))
 
+@login_required(login_url=login_url_def_name)
 def insertform(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     return HttpResponse(
         updateform_render(request, username, None, fmt, True))
 
+@login_required(login_url=login_url_def_name)
 def update(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # validate params
     params = None
     if fmt == 'html':
@@ -639,10 +625,20 @@ def update(request, username, accid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def insert(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     return update(request, username, None, fmt)
 
+@login_required(login_url=login_url_def_name)
 def updatesuccess(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('common/success.html')
     context = {
         'message': RESPONSE_MESSAGE['update_success'],
@@ -650,7 +646,12 @@ def updatesuccess(request, username, accid, fmt):
     return accdetail(request, username, accid, fmt,
         rendered=template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def insertsuccess(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('common/success.html')
     context = {
         'message': RESPONSE_MESSAGE['insert_success'],
@@ -658,7 +659,12 @@ def insertsuccess(request, username, accid, fmt):
     return accdetail(request, username, accid, fmt,
         rendered=template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def deleteconfirm(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # get account object
     account = get_object_or_404(Account,
         Q(accup_user_id__accup_user_name=username),
@@ -701,11 +707,16 @@ def deleteconfirm(request, username, accid, fmt):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required(login_url=login_url_def_name)
 def delete(request, username, accid, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     # validate params
     params = None
     account = get_object_or_404(Account,
-        Q(accup_user_id_id__accup_user_name=username),
+        Q(accup_user_id__accup_user_name=username),
         Q(id=accid))
     # delete account record
     result = None
@@ -737,7 +748,12 @@ def delete(request, username, accid, fmt):
     #        reverse('acclist:accdetail', args=
     #            (fmt, username, accid,)))
 
+@login_required(login_url=login_url_def_name)
 def deletesuccess(request, username, fmt):
+    # permission check
+    is_users_url(request.user, username)
+
+    # main process
     template = loader.get_template('acclist/deletesuccess.html')
     context = {
         'title_text': 'Account has been deleted.',

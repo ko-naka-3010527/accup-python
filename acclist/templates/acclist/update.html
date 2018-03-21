@@ -2,7 +2,7 @@
 {% block contents %}
     <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">{{ common_string.link_go_back_to_acclist }}</button>
     {% if newacc or account and mail_list and service_list and addr_list and phone_list and account_list %}
-    <h1 class="page_title">Update your account</h1>
+    <h1 class="page_title">{% if newacc %}Register{% else %}Update{% endif %} your account</h1>
         {% if validate %}
     <div class="validate">
             {{ validate.non_field_errors }}
@@ -81,11 +81,11 @@
             <label>{{ key_string.password }}</label>
             <div class="form-row">
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1">
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1"{% if newacc %} checked{% endif %}>
                 <label class="form-check-label" for="updatepwd1">{{ other_string.password_check_update }}</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0" checked>
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0"{% if not newacc %} checked{% endif %}>
                 <label class="form-check-label" for="updatepwd0">{{ other_string.password_check_not_update }}</label>
             </div>
             </div>

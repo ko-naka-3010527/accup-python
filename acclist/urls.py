@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'acclist'
 urlpatterns = [
-    #path('', views.index, name='index'),
+    path('', views.index, name='index'),
 
     # account list
     path('<str:fmt>/<str:username>/', views.alllist, name='alllist'),

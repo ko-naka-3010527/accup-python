@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 {% block contents %}
     <h1 class="page_title">Account List</h1>
-    <p>
-        <button type="button" class="btn btn-primary" onclick="location.href='{% url 'acclist:accinsertform' 'html' username %}'">
-            Register new account info
-        </button>
-    </p>
     {% if account_list %}
     <table class="table table-striped">
         <tbody>
