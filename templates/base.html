@@ -30,6 +30,7 @@
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
         <a class="navbar-brand" href="#">Acc-Up</a>
+        {% if username %}
         <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -41,12 +42,8 @@
                 Accounts
               </a>
               <div class="dropdown-menu" aria-labelledby="Dropdown">
-              {% if username %}
                 <a class="dropdown-item" href="{% url 'acclist:alllist' 'html' username %}">Account list</a>
                 <a class="dropdown-item" href="{% url 'acclist:accinsertform' 'html' username %}">Add another account</a>
-              {% else %}
-                <a class="dropdown-item" href="{% url 'accounts:login' %}">Please log-in first.</a>
-              {% endif %}
               </div>
             </li>
             <li class="nav-item">
@@ -56,10 +53,11 @@
         </div>
         <div class="my-2 my-lg-0">
           <span class="navbar-text mr-3">
-            {% if username %} Hi, {{ username }}. {% endif %}
+            Hi, {{ username }}.
           </span>
-          <button type="button" class="btn btn-secondary" onclick="location.href='{% url 'accounts:logout' %}'">log-out</button>
+          <button type="button" class="btn btn-secondary" onclick="location.href='{% url 'accounts:logout' %}'">Logout</button>
         </div>
+        {% endif %}
       </div>
     </nav>
 
