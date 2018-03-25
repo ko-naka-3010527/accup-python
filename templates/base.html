@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
@@ -17,7 +16,6 @@
         unknown page
 {% endif %}
     </title>
-    <!-- Bootstrap core CSS -->
     <!-- <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet"> -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
@@ -29,7 +27,7 @@
 
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
-        <a class="navbar-brand" href="#">Acc-Up</a>
+        <a class="navbar-brand" href="{% url 'accounts:index' %}">Acc-Up</a>
         {% if username %}
         <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -47,7 +45,7 @@
               </div>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">My Acc-Up account</a>
+              <a class="nav-link" href="{% url 'accounts:update_form' 'html' username %}">My Acc-Up account</a>
             </li>
           </ul>
         </div>
@@ -63,13 +61,8 @@
 
     <div class="container">
     {% block contents %}{% endblock contents %}
-    </div><!-- /.container -->
+    </div>
 
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
-    <!-- <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script> -->
   </body>
 </html>
