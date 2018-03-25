@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block contents %}
-    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">{{ common_string.link_go_back_to_acclist }}</button>
     {% if newacc or account and mail_list and service_list and addr_list and phone_list and account_list %}
-    <h1 class="page_title">{% if newacc %}Register{% else %}Update{% endif %} your account</h1>
+    <h1 class="page_title">{% if newacc %}Register{% else %}Update{% endif %} account</h1>
         {% if validate %}
     <div class="validate">
             {{ validate.non_field_errors }}
@@ -423,6 +422,6 @@
     {% else %}
     <p class="no_content_message">Failed to load account data.</p>
     {% endif %}
-    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">{{ common_string.link_go_back_to_acclist }}</button>
+    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
 {% endblock contents %}
     

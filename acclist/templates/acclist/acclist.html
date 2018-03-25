@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block contents %}
-    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
     <h1 class="page_title">Account list</h1>
     {% if rendered %}
         {{ rendered }}

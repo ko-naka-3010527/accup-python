@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block contents %}
-    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
     {% if title_text %}
     <h1 class="page_title">{{ title_text }}</h1>
     {% endif %}
@@ -25,10 +24,12 @@
     </div>
     {% endif %}
     {% if account %}
+        {% if not delete %}
     <p class="button_set">
         <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}'">update account</button>
         <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' account.accup_user_id.accup_user_name account.id %}'">delete account</button>
     </p>
+        {% endif %}
     <table class="table table-striped">
         <thead>
             <tr>
@@ -170,10 +171,12 @@
             </tr>
         </tbody>
     </table>
+        {% if not delete %}
     <p class="button_set">
         <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' account.accup_user_id.accup_user_name account.id %}'">update account</button>
         <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' account.accup_user_id.accup_user_name account.id %}'">delete account</button>
     </p>
+        {% endif %}
     {% else %}
     <p class="no_content_message">The account does not exist.</p>
     {% endif %}

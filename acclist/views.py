@@ -699,11 +699,12 @@ def deleteconfirm(request, username, accid, fmt):
     # response
     template = loader.get_template('acclist/accdetail.html')
     context = {
-        'title_text': 'Account detail',
+        'title_text': 'Delete account',
         'account': account,
         'key_string': KEY_STRING,
         'rendered': relay,
         'username': username,
+        'delete': True,
     }
     return HttpResponse(template.render(context, request))
 
