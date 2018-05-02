@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block contents %}
+    <h1 class="page_title">{{ title_text }}</h1>
+    {% if message %}
+        {{ message }}
+    {% endif %}
+    <a href="{% url 'acclist:alllist' 'html' username %}">Go back to account list</a>
+{% endblock contents %}

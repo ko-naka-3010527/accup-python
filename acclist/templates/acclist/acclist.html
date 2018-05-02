@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block contents %}
+    <h1 class="page_title">Account list</h1>
+    {% if rendered %}
+        {{ rendered }}
+    {% endif %}
+    <p class="description">{{ description|safe }}{{ key_value }}</p>
+    <p class="count">
+        Listed account(s): {{ count }}
+    </p>
+    {% if account_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for acc in account_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:accdetail' 'html' username acc.id %}">
+                    {{ acc.service.service_name }} - {{ acc.name }}
+                </a></td>
+                <td class="col-2" style="text-align: right;">
+                    <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' username acc.id %}'">
+                        編集
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' username acc.id %}'">
+                    削除
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No accounts are listed.</p>
+    {% endif %}
+    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
+{% endblock contents %}

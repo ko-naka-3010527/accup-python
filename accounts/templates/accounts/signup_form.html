@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block contents %}
+    <div class="container">
+    {% if newuser or username and email %}
+        <div class="row justify-content-center">
+            <div class="col-12 py-3 text-center">
+                <h1 class="page_title">{{ title_text }}</h1>
+            </div>
+        </div>
+
+        {% if validate %}
+        <div class="row justify-content-center">
+            <div class="col-4 py-3 text-center">
+                <div class="validate">
+                    {{ validate.non_field_errors }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if relay %}
+        <div class="row justify-content-center">
+            <div class="col-4 py-3 text-center">
+                <div class="error">
+                    <div class="error_message">
+                        {{ relay.result.message }}
+                    </div>
+                    <div class="error_detail">
+            {% for d in relay.result.py_e %}
+                        <div class="msg">{{ d }}</div>
+            {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if newuser %}
+        <form action="{% url 'accounts:create' 'html' %}" method="post">
+        {% else %}
+        <form action="{% url 'accounts:update' 'html' username %}" method="post">
+        {% endif %}
+
+        {% csrf_token %}
+
+        {% if newuser %}
+            <div class="row justify-content-center">
+                <div class="form-group col-4">
+                    <label for="username">{{ key_string.username }}</label>
+                    <input id="userid" name="userid" type="text" class="form-control">
+            {% if validate.userid.errors %}
+                    <small class="form-text text-muted">
+                        {{ validate.userid.errors }}
+                    </small>
+            {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="row justify-content-center">
+                <div class="form-group col-4">
+                    <label>{{ key_string.password }}</label>
+                    <div class="form-row">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1" onclick="$('#collapse_password_form').collapse('show')">
+                            <label class="form-check-label" for="updatepwd1">{{ key_string.password_update }}</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0" onclick="$('#collapse_password_form').collapse('hide')" checked>
+                            <label class="form-check-label" for="updatepwd0">{{ key_string.password_not_update }}</label>
+                        </div>
+                    </div>
+            {% if validate.updatepwd.errors %}
+                    <small class="form-text text-muted">
+                        {{ validate.updatepwd.errors }}
+                    </small>
+            {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if not newuser %}
+            <div class="collapse" id="collapse_password_form">
+        {% else %}
+            <div>
+        {% endif %}
+                <div class="row justify-content-center">
+                    <div class="form-group col-4">
+                        <label for="password">{{ key_string.password }}</label>
+                        <input id="password" name="password" type="password" class="form-control">
+        {% if validate.password.errors %}
+                        <small class="form-text text-muted">
+                            {{ validate.password.errors }}
+                        </small>
+        {% endif %}
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="form-group col-4">
+                        <label for="password_confirm">{{ key_string.password_confirm }}</label>
+                        <input id="password_confirm" name="password_confirm" type="password" class="form-control">
+        {% if validate.password_confirm.errors %}
+                        <small class="form-text text-muted">
+                            {{ validate.password_confirm.errors }}
+                        </small>
+        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center my-3">
+                <div class="form-group col-4">
+                    <label for="email">{{ key_string.email }}</label>
+                    <input id="email" name="email" type="text" class="form-control">
+        {% if validate.email.errors %}
+                    <small class="form-text text-muted">
+                        {{ validate.email.errors }}
+                    </small>
+        {% endif %}
+                </div>
+            </div>
+
+        {% if not newuser %}
+            <div class="row justify-content-center my-3">
+                <div class="form-group col-4">
+                    <label for="current_password">{{ key_string.password_old }}</label>
+                    <input id="current_password" name="current_password" type="password" class="form-control">
+            {% if validate.current_password.errors %}
+                    <small class="form-text text-muted">
+                        {{ validate.current_password.errors }}
+                    </small>
+            {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+            <div class="row justify-content-center">
+                <div class="form-group col-4">
+        {% if newuser %}
+                    <input type="submit" value="Sign up" class="btn btn-info w-100">
+        {% else %}
+                    <input type="submit" value="Update" class="btn btn-info w-100">
+        {% endif %}
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="form-group col-4">
+        {% if newuser %}    
+                    <button type="button" class="btn btn-secondary w-100" onclick="location.href='{% url 'accounts:index' %}'">Cancel</button>
+        {% else %}
+                    <button type="button" class="btn btn-secondary w-100" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Cancel</button>
+        {% endif %}
+                </div>
+            </div>
+        </form>
+    {% else %}
+        <p class="no_content_message">Failed to load account data.</p>
+    {% endif %}
+    </div>
+{% endblock contents %}

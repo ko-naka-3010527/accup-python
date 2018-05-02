@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block contents %}
+
+<div class="container">
+  <form action="{% url 'accounts:login' %}" method="post" role="form">
+    <div class="row justify-content-center">
+      <h3 class="col-4 py-3 text-center">Acc-Up Login</h3>
+    </div>
+    {% if form.errors  %}
+    <div class="row justify-content-center">
+      <div class="alert alert-danger col-4 mt-3 mb-5" role="alert">
+        Your username and password didn't match. Please try again.
+      </div>
+    </div>
+    {% endif %}
+    <div class="row justify-content-center">
+      {% csrf_token %}
+      <div class="form-group col-4">
+        <input class="form-control" id="id_username" name="username" type="text" value="" maxlength="256" placeholder="Username" aria-describedby="sizing-addon1" autofocus required/>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="form-group col-4">
+        <input class="form-control" id="id_password" name="password" type="password" value="" maxlength="256" placeholder="Pasword" aria-describedby="sizing-addon1" required/>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-4 text-center">
+        <a href="{% url 'accounts:login' %}">Forgot password</a>
+      </div>
+      <input name="next" type="hidden" value="{{ next }}"/>
+    </div>
+    <div class="row justify-content-center mt-5">
+      <div class="col-4">
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </div>
+    </div>
+  </form>
+  <div class="row justify-content-center">
+    <div class="col-4 py-3">
+      <button type="button" class="btn btn-default w-100" onclick="location.href='{% url 'accounts:create_form' 'html' %}'">Sign-Up</button>
+    </div>
+  </div>
+</div>
+{% endblock contents %}
+

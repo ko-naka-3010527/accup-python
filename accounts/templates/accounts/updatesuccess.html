@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block contents %}
+
+{% if message and username %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="alert alert-info col-4 mt-3 mb-3" role="alert">
+      {{ message }}
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-4">
+      <button type="button" class="btn btn-link w-100" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">View your accounts list</button>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="alert alert-danger col-4 mt-3 mb-3" role="alert">
+      不明なエラーが発生しました。
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock contents %}
+

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
+
+    <title>
+        Acc-Up - 
+{% if title_text %}
+        {{ title_text }}
+{% else %}
+        unknown page
+{% endif %}
+    </title>
+    <!-- <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </head>
+
+  <body style="padding-top: 90px;">
+
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'accounts:index' %}">Acc-Up</a>
+        {% if username %}
+        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="myaccsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Accounts
+              </a>
+              <div class="dropdown-menu" aria-labelledby="Dropdown">
+                <a class="dropdown-item" href="{% url 'acclist:alllist' 'html' username %}">Account list</a>
+                <a class="dropdown-item" href="{% url 'acclist:accinsertform' 'html' username %}">Add another account</a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'accounts:update_form' 'html' username %}">My Acc-Up account</a>
+            </li>
+          </ul>
+        </div>
+        <div class="my-2 my-lg-0">
+          <span class="navbar-text mr-3">
+            Hi, {{ username }}.
+          </span>
+          <button type="button" class="btn btn-secondary" onclick="location.href='{% url 'accounts:logout' %}'">Logout</button>
+        </div>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="container">
+    {% block contents %}{% endblock contents %}
+    </div>
+
+
+  </body>
+</html>

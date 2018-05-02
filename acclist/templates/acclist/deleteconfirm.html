@@ -1,0 +1,23 @@
+        <p class="deleteconfirm_message">
+            サービス {{ service }} のアカウント {{ accname }} の情報を削除します。<br>
+{% if related_acounts %}
+            このアカウントは、以下のアカウントにリンクされています。<br>
+            <ul>
+    {% for acc in related_acounts %}
+        <li><a href="{% url 'acclist:accdetail' 'html' username acc.id %}">
+            {{ acc.service.service_name }} - {{ acc.name }}
+        </a></li>
+    {% endfor %}
+            </ul>
+            これらの他のアカウントとのリンク情報も削除されます。<br>
+{% endif %}
+            削除した情報は復元できません。削除してよろしいですか？
+        </p>
+        <p class="deleteconfirm_button">
+            <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdelete' 'html' username accid %}'">
+                はい、削除します
+            </button>
+            <button type="button" class="btn btn-default" onclick="location.href='{% url 'acclist:accdetail' 'html' username accid %}'">
+                いいえ、削除しません
+            </button>
+        </p>

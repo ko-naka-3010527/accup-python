@@ -1,0 +1,26 @@
+# ignore secret sttings
+accup/secrets.py
+
+# ignore pycaches
+acclist/__pycache__/
+acclist/lib/__pycache__/
+acclist/lib/crypto/__pycache__/
+acclist/lib/definitions/__pycache__/
+acclist/lib/exception/__pycache__/
+acclist/lib/form/__pycache__/
+acclist/lib/logic/__pycache__/
+accounts/__pycache__/
+accounts/lib/__pycache__/
+accounts/lib/definitions/__pycache__/
+accounts/lib/exception/__pycache__/
+accounts/lib/form/__pycache__/
+accounts/lib/logic/__pycache__/
+accup/__pycache__/
+
+# ignore migrations
+acclist/migrations/
+accounts/migrations/
+
+# ignore sqlite
+db.sqlite3
+

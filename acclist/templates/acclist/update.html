@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+{% block contents %}
+    {% if newacc or account and mail_list and service_list and addr_list and phone_list and account_list %}
+    <h1 class="page_title">{% if newacc %}Register{% else %}Update{% endif %} account</h1>
+        {% if validate %}
+    <div class="validate">
+            {{ validate.non_field_errors }}
+    </div>
+        {% endif %}
+        {% if relay %}
+    <div class="error">
+        <div class="error_message">
+            {{ relay.result.message }}
+        </div>
+        <div class="error_detail">
+            {% for d in relay.result.py_e %}
+            <div class="msg">{{ d }}</div>
+            {% endfor %}
+        </div>
+    </div>
+        {% endif %}
+        {% if newacc %}
+    <form action="{% url 'acclist:accinsert' 'html' username %}" method="post">
+        {% else %}
+    <form action="{% url 'acclist:accupdate' 'html' username account.id %}" method="post">
+        {% endif %}
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="status">{{ key_string.status }}</label>
+            <select class="form-control" id="status" name="status">
+                <option value="1"{% if account.status == 1 %} selected{% endif %}>{{ other_string.status_alive }}</option>
+                <option value="0"{% if account.status == 0 %} selected{% endif %}>{{ other_string.status_dead }}</option>
+            </select>
+        {% if validate.status.errors %}
+            <small class="form-text text-muted">
+                {{ validate.status.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.service }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="service" name="service">
+                        <option value="{{ select_option.new }}">{{ other_string.service_new }}</option>
+        {% for svc in service_list %}
+                        <option value="{{ svc.id }}"{% if account.service.id == svc.id %} selected{% endif %}>{{ svc.service_name }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newservice" id="newservice" type="text" class="form-control" placeholder="{{ other_string.service_new_input }}">
+                </div>
+            </div>
+        {% if validate.service.errors %}
+            <small class="form-text text-muted">
+                {{ validate.service.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newservice.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newservice.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="accountid">{{ key_string.name }}</label>
+            <input id="accountid" name="accountid" type="text" class="form-control" value="{{ account.name }}">
+        {% if validate.accountid.errors %}
+            <small class="form-text text-muted">
+                {{ validate.accountid.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.password }}</label>
+            <div class="form-row">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1"{% if newacc %} checked{% endif %}>
+                <label class="form-check-label" for="updatepwd1">{{ other_string.password_check_update }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0"{% if not newacc %} checked{% endif %}>
+                <label class="form-check-label" for="updatepwd0">{{ other_string.password_check_not_update }}</label>
+            </div>
+            </div>
+        {% if validate.updatepwd.errors %}
+            <small class="form-text text-muted">
+                {{ validate.updatepwd.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.password_new }}</label>
+            <input id="password" name="password" type="password" class="form-control" placeholder="{{ other_string.password_new_password }}">
+        {% if validate.password.errors %}
+            <small class="form-text text-muted">
+                {{ validate.password.errors }}
+            </small>
+        {% endif %}
+            <input id="password_conf" name="password_conf" type="password" class="form-control" placeholder="{{ other_string.password_new_password_conf }}">
+        {% if validate.password_conf.errors %}
+            <small class="form-text text-muted">
+                {{ validate.password_conf.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.mailaddr1 }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="mailaddr1" name="mailaddr1">
+                        <option value="{{ select_option.blank }}"{% if not account.mailaddr1 %} selected{% endif %}>----</option>
+                        <option value="{{ select_option.new }}">{{ other_string.mailaddr_new }}</option>
+        {% for mail in mail_list %}
+                        <option value="{{ mail.id }}"{% if account.mailaddr1.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newmail1" id="newmail1" type="text" class="form-control" placeholder="{{ other_string.mailaddr_new_input }}">
+                </div>
+            </div>
+        {% if validate.mailaddr1.errors %}
+            <small class="form-text text-muted">
+                {{ validate.mailaddr1.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newmail1.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newmail1.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.mailaddr2 }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="mailaddr2" name="mailaddr2">
+                        <option value="{{ select_option.blank }}"{% if not account.mailaddr2 %} selected{% endif %}>----</option>
+                        <option value="{{ select_option.new }}">{{ other_string.mailaddr_new }}</option>
+        {% for mail in mail_list %}
+                        <option value="{{ mail.id }}"{% if account.mailaddr2.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newmail2" id="newmail2" type="text" class="form-control" placeholder="{{ other_string.mailaddr_new_input }}">
+                </div>
+            </div>
+        {% if validate.mailaddr2.errors %}
+            <small class="form-text text-muted">
+                {{ validate.mailaddr2.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newmail2.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newmail2.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.mailaddr3 }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="mailaddr3" name="mailaddr3">
+                        <option value="{{ select_option.blank }}"{% if not account.mailaddr3 %} selected{% endif %}>----</option>
+                        <option value="{{ select_option.new }}">{{ other_string.mailaddr_new }}</option>
+        {% for mail in mail_list %}
+                        <option value="{{ mail.id }}"{% if account.mailaddr3.id == mail.id %} selected{% endif %}>{{ mail.mailaddr_text }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newmail3" id="newmail3" type="text" class="form-control" placeholder="{{ other_string.mailaddr_new_input }}">
+                </div>
+            </div>
+        {% if validate.mailaddr3.errors %}
+            <small class="form-text text-muted">
+                {{ validate.mailaddr3.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newmail3.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newmail3.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.address }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="address" name="address">
+                        <option value="{{ select_option.blank }}"{% if not account.address %} selected{% endif %}>----</option>
+                        <option value="{{ select_option.new }}">{{ other_string.address_new }}</option>
+        {% for addr in addr_list %}
+                        <option value="{{ addr.id }}"{% if account.address.id == addr.id %} selected{% endif %}>{{ addr.address_text }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newaddress" id="newaddress" type="text" class="form-control" placeholder="{{ other_string.address_new_input }}">
+                </div>
+            </div>
+        {% if validate.address.errors %}
+            <small class="form-text text-muted">
+                {{ validate.address.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newaddress.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newaddress.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>{{ key_string.phonenum }}</label>
+            <div class="form-row">
+                <div class="col-4">
+                    <select class="form-control" id="phonenum" name="phonenum">
+                        <option value="{{ select_option.blank }}"{% if not account.phonenum %} selected{% endif %}>----</option>
+                        <option value="{{ select_option.new }}">{{ other_string.phonenum_new }}</option>
+        {% for phone in phone_list %}
+                        <option value="{{ phone.id }}"{% if account.phonenum.id == phone.id %} selected{% endif %}>{{ phone.phonenum_text }}</option>
+        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input name="newphonenum" id="newphonenum" type="text" class="form-control" placeholder="{{ other_string.phonenum_new_input }}">
+                </div>
+            </div>
+        {% if validate.phonenum.errors %}
+            <small class="form-text text-muted">
+                {{ validate.phonenum.errors }}
+            </small>
+        {% endif %}
+        {% if validate.newphonenum.errors %}
+            <small class="form-text text-muted">
+                {{ validate.newphonenum.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="link1">{{ key_string.acclink1 }}</label>
+            <select class="form-control" id="link1" name="link1">
+                <option value="{{ select_option.blank }}"{% if not account.link1 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                <option value="{{ acc.id }}"{% if account.link1.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+            </select>
+        {% if validate.link1.errors %}
+            <small class="form-text text-muted">
+                {{ validate.link1.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="link2">{{ key_string.acclink2 }}</label>
+            <select class="form-control" id="link2" name="link2">
+                <option value="{{ select_option.blank }}"{% if not account.link2 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                <option value="{{ acc.id }}"{% if account.link2.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+            </select>
+        {% if validate.link2.errors %}
+            <small class="form-text text-muted">
+                {{ validate.link2.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="link3">{{ key_string.acclink3 }}</label>
+            <select class="form-control" id="link3" name="link3">
+                <option value="{{ select_option.blank }}"{% if not account.link3 %} selected{% endif %}>----</option>
+        {% for acc in account_list %}
+                <option value="{{ acc.id }}"{% if account.link3.id == acc.id %} selected{% endif %}>{{ acc.service.service_name }} - {{ acc.name }}</option>
+        {% endfor %}
+            </select>
+        {% if validate.link3.errors %}
+            <small class="form-text text-muted">
+                {{ validate.link3.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-6">
+                <label for="multifactor_type">{{ key_string.multitype }}</label>
+                <input id="multifactor_type" name="multifactor_type" type="text" class="form-control" value="{% if account.multifactorauth_type %}{{ account.multifactorauth_type }}{% endif %}" placeholder="{{ other_string.multitype_input }}">
+        {% if validate.multifactor_type.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.multifactor_type.errors }}
+                </small>
+        {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="multifactor_info">{{ key_string.multiinfo }}</label>
+                <input id="multifactor_info" name="multifactor_info" type="text" class="form-control" value="{% if account.multifactorauth_id %}{{ account.multifactorauth_id }}{% endif %}" placeholder="{{ other_string.multiinfo_input }}">
+        {% if validate.multifactor_info.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.multifactor_info.errors }}
+                </small>
+        {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-6">
+                <label for="secq1">{{ key_string.secretq1 }}</label>
+                <input id="secq1" name="secq1" type="text" class="form-control" value="{% if account.secret_q1 %}{{ account.secret_q1 }}{% endif %}" placeholder="{{ other_string.secq_input }}">
+        {% if validate.secq1.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.secq1.errors }}
+                </small>
+        {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="seca1">{{ key_string.secreta1 }}</label>
+                <input id="seca1" name="seca1" type="text" class="form-control" value="{% if account.secret_a1 %}{{ account.secret_a1 }}{% endif %}" placeholder="{{ other_string.seca_input }}">
+        {% if validate.seca1.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.seca1.errors }}
+                </small>
+        {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-6">
+                <label for="secq2">{{ key_string.secretq2 }}</label>
+                <input id="secq2" name="secq2" type="text" class="form-control" value="{% if account.secret_q2 %}{{ account.secret_q2 }}{% endif %}" placeholder="{{ other_string.secq_input }}">
+        {% if validate.secq2.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.secq2.errors }}
+                </small>
+        {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="seca2">{{ key_string.secreta2 }}</label>
+                <input id="seca2" name="seca2" type="text" class="form-control" value="{% if account.secret_a2 %}{{ account.secret_a2 }}{% endif %}" placeholder="{{ other_string.seca_input }}">
+        {% if validate.seca2.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.seca2.errors }}
+                </small>
+        {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-6">
+                <label for="secq3">{{ key_string.secretq3 }}</label>
+                <input id="secq3" name="secq3" type="text" class="form-control" value="{% if account.secret_q3 %}{{ account.secret_q3 }}{% endif %}" placeholder="{{ other_string.secq_input }}">
+        {% if validate.secq3.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.secq3.errors }}
+                </small>
+        {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="seca3">{{ key_string.secreta3 }}</label>
+                <input id="seca3" name="seca3" type="text" class="form-control" value="{% if account.secret_a3 %}{{ account.secret_a3 }}{% endif %}" placeholder="{{ other_string.seca_input }}">
+        {% if validate.seca3.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.seca3.errors }}
+                </small>
+        {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-6">
+                <label for="register_date">{{ key_string.registerdate }}</label>
+                <input id="register_date" name="register_date" type="date" class="form-control"{% if account.account_register_date %} value="{{ account.account_register_date|date:"Y-m-d" }}"{% endif %}>
+        {% if validate.register_date.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.register_date.errors }}
+                </small>
+        {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="unregister_date">{{ key_string.unregisterdate }}</label>
+                <input id="unregister_date" name="unregister_date" type="date" class="form-control"{% if account.account_unregister_date %} value="{{ account.account_unregister_date|date:"Y-m-d" }}"{% endif %}>
+        {% if validate.unregister_date.errors %}
+                <small class="form-text text-muted">
+                    {{ validate.unregister_date.errors }}
+                </small>
+        {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="memo">{{ key_string.memo }}</label>
+            <textarea id="memo" name="memo" rows="5" class="form-control">{% if account.memo %}{{ account.memo }}{% endif %}</textarea>
+        {% if validate.memo.errors %}
+            <small class="form-text text-muted">
+                {{ validate.memo.errors }}
+            </small>
+        {% endif %}
+        </div>
+
+        <p class="button_set">
+            <input type="submit" value="Submit" class="btn btn-info" />
+        {% if newacc %}
+        {% else %}
+            <button type="button" class="btn btn-secondary" onclick="location.href='{% url 'acclist:accdetail' 'html' account.accup_user_id.accup_user_name account.id %}'">Cancel</button>
+        {% endif %}
+        </p>
+    </form>
+    {% else %}
+    <p class="no_content_message">Failed to load account data.</p>
+    {% endif %}
+    <button type="button" class="btn btn-link" onclick="location.href='{% url 'acclist:alllist' 'html' username %}'">Go back to account list</button>
+{% endblock contents %}
+    

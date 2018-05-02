@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block contents %}
+    <h1 class="page_title">Account List</h1>
+    {% if account_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for acc in account_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:accdetail' 'html' username acc.id %}">
+                    {{ acc.service.service_name }} - {{ acc.name }}
+                </a></td>
+                <td class="col-2" style="text-align: right;">
+                    <button type="button" class="btn btn-info" onclick="location.href='{% url 'acclist:accupdateform' 'html' username acc.id %}'">
+                        編集
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:accdeleteconfirm' 'html' username acc.id %}'">
+                        削除
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No accounts are registered.</p>
+    {% endif %}
+
+    <h1 class="page_title">Mail Address List</h1>
+    {% if mail_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for mail in mail_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:maillinkedlist' 'html' username mail.id %}">
+                    {{ mail.mailaddr_text }}
+                </a></td>
+                <td class="col-2" style="text-align: right;"><button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:maildeleteconfirm' 'html' username mail.id %}'">
+                    削除
+                </button></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No mail addresses are registered.</p>
+    {% endif %}
+
+    <h1 class="page_title">Address List</h1>
+    {% if address_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for addr in address_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:addresslinkedlist' 'html' username addr.id %}">
+                    {{ addr.address_text }}
+                </a></td>
+                <td class="col-2" style="text-align: right;"><button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:addressdeleteconfirm' 'html' username addr.id %}'">
+                    削除
+                </button></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No addresses are registered.</p>
+    {% endif %}
+
+    <h1 class="page_title">Phonenum List</h1>
+    {% if phonenum_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for pn in phonenum_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:phonenumlinkedlist' 'html' username pn.id %}">
+                    {{ pn.phonenum_text }}
+                </a></td>
+                <td class="col-2" style="text-align: right;"><button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:phonenumdeleteconfirm' 'html' username pn.id %}'">
+                    削除
+                </button></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No phonenums are registered.</p>
+    {% endif %}
+
+    <h1 class="page_title">Service List</h1>
+    {% if service_list %}
+    <table class="table table-striped">
+        <tbody>
+        {% for svc in service_list %}
+            <tr class="row">
+                <td class="col-10" style="vertical-align: middle;"><a href="{% url 'acclist:servicelinkedlist' 'html' username svc.id %}">
+                    {{ svc.service_name }}
+                </a></td>
+                <td class="col-2" style="text-align: right;"><button type="button" class="btn btn-danger" onclick="location.href='{% url 'acclist:servicedeleteconfirm' 'html' username svc.id %}'">
+                    削除
+                </button></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="no_content_message">No services are registered.</p>
+    {% endif %}
+
+{% endblock contents %}
