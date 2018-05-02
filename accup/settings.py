@@ -14,7 +14,7 @@ SECRET_KEY = SECRET_CONFIG['secret_key']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.20.128.140']
+ALLOWED_HOSTS = SECRET_CONFIG['allowed_hosts']
 
 
 # Application definition
@@ -118,4 +118,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # redirect setting for after logined
 LOGIN_REDIRECT_URL = 'accounts:loginredirect'
+
+# cipher settings
+CIPHER_KEY_LENGTH = 256
+CIPHER_REALM = SECRET_CONFIG['realm']
+CIPHER_MB_ENCODING = "utf-8"
 
