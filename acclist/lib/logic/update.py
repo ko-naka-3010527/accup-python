@@ -12,7 +12,8 @@ def is_new(param):
 def is_blank(param):
     return param == SELECT_OPTION['blank']
 
-def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
+def mail_addr_prepare(
+    mail_input, new_mail_input, num, accup_user_id, user, enc):
     if is_blank(mail_input):
         return None
     elif is_new(mail_input):
@@ -24,7 +25,7 @@ def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
             raise e
         mail = Mailaddr()
         mail.accup_user_id = user
-        mail.mailaddr_text = new_mail_input
+        mail.mailaddr_text = enc.encrypt(new_mail_input)
         try:
             mail.full_clean()
         except ValidationError as e:
@@ -54,7 +55,7 @@ def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
             raise e
         return mail_tmp
 
-def update_account(accup_user_id, account, form, user):
+def update_account(accup_user_id, account, form, user, enc):
     # create new record of 'Account' if account is None
     if account is None:
         acc = Account()
@@ -82,7 +83,7 @@ def update_account(accup_user_id, account, form, user):
             raise e
         service = Service()
         service.accup_user_id = user
-        service.service_name = newservice_input
+        service.service_name = enc.encrypt(newservice_input)
         try:
             service.full_clean()
         except ValidationError as e:
@@ -113,13 +114,13 @@ def update_account(accup_user_id, account, form, user):
         acc.service = service_tmp
     
     # Account ID
-    acc.name = form.cleaned_data['accountid']
+    acc.name = enc.encrypt(form.cleaned_data['accountid'])
 
     # check if 'password' is updated or not
     if form.cleaned_data['updatepwd'] == 1:
         # updated
         if form.cleaned_data['password'] == form.cleaned_data['password_conf']:
-            acc.passwd = form.cleaned_data['password']
+            acc.passwd = enc.encrypt(form.cleaned_data['password'])
         else:
             e = AcclistException()
             e.set_params(
@@ -177,11 +178,11 @@ def update_account(accup_user_id, account, form, user):
                     UPDATE_RESPONSE['param_mailaddr_duplicate'])
                 raise e
     acc.mailaddr1 = mail_addr_prepare(
-        mail1_input, new_mail1_input, 1, accup_user_id, user)
+        mail1_input, new_mail1_input, 1, accup_user_id, user, enc)
     acc.mailaddr2 = mail_addr_prepare(
-        mail2_input, new_mail2_input, 2, accup_user_id, user)
+        mail2_input, new_mail2_input, 2, accup_user_id, user, enc)
     acc.mailaddr3 = mail_addr_prepare(
-        mail3_input, new_mail3_input, 3, accup_user_id, user)
+        mail3_input, new_mail3_input, 3, accup_user_id, user, enc)
 
     # check if 'address' is new or blank or not
     address_input = form.cleaned_data['address']
@@ -197,7 +198,7 @@ def update_account(accup_user_id, account, form, user):
             raise e
         address = Address()
         address.accup_user_id = user
-        address.address_text = newaddress_input
+        address.address_text = enc.encrypt(newaddress_input)
         try:
             address.full_clean()
         except ValidationError as e:
@@ -241,7 +242,7 @@ def update_account(accup_user_id, account, form, user):
             raise e
         phonenum = Phonenum()
         phonenum.accup_user_id = user
-        phonenum.phonenum_text = newphonenum_input
+        phonenum.phonenum_text = enc.encrypt(newphonenum_input)
         try:
             phonenum.full_clean()
         except ValidationError as e:
@@ -320,18 +321,20 @@ def update_account(accup_user_id, account, form, user):
         acc.link3 = acc_tmp
 
     # multifactor type
-    acc.multifactorauth_type = form.cleaned_data['multifactor_type']
+    acc.multifactorauth_type = enc.encrypt(
+        form.cleaned_data['multifactor_type'])
 
     # multifactor info
-    acc.multifactorauth_id = form.cleaned_data['multifactor_info']
+    acc.multifactorauth_id = enc.encrypt(
+        form.cleaned_data['multifactor_info'])
 
     # secret Q&A
-    acc.secret_q1 = form.cleaned_data['secq1']
-    acc.secret_a1 = form.cleaned_data['seca1']
-    acc.secret_q2 = form.cleaned_data['secq2']
-    acc.secret_a2 = form.cleaned_data['seca2']
-    acc.secret_q3 = form.cleaned_data['secq3']
-    acc.secret_a3 = form.cleaned_data['seca3']
+    acc.secret_q1 = enc.encrypt(form.cleaned_data['secq1'])
+    acc.secret_a1 = enc.encrypt(form.cleaned_data['seca1'])
+    acc.secret_q2 = enc.encrypt(form.cleaned_data['secq2'])
+    acc.secret_a2 = enc.encrypt(form.cleaned_data['seca2'])
+    acc.secret_q3 = enc.encrypt(form.cleaned_data['secq3'])
+    acc.secret_a3 = enc.encrypt(form.cleaned_data['seca3'])
 
     # account register date
     acc.account_register_date = form.cleaned_data['register_date']
@@ -340,7 +343,7 @@ def update_account(accup_user_id, account, form, user):
     acc.account_unregister_date = form.cleaned_data['unregister_date']
 
     # memo
-    acc.memo = form.cleaned_data['memo']
+    acc.memo = enc.encrypt(form.cleaned_data['memo'])
 
     # save
     try:

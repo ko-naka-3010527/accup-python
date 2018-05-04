@@ -8,7 +8,9 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db import IntegrityError, transaction
+from django.contrib.auth import logout as django_simple_logout
 from django.contrib.auth.decorators import login_required
+from django.core.signing import BadSignature, SignatureExpired
 
 from accounts.models import User as Acclistuser
 from accounts.permissions import is_users_url
@@ -25,6 +27,8 @@ from .lib.definitions.specialconsts import *
 from .lib.exception.acclistexception import *
 from .lib.form.update import *
 from .lib.logic.update import *
+from .lib.logic.cryptoutil import get_encryptor
+from .lib.logic.modelutil import *
 
 import sys
 
@@ -44,22 +48,41 @@ def alllist(request, username, fmt):
     # permission check
     is_users_url(request.user, username)
 
-    # main process
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(username, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        django_simple_logout(request)
+        return HttpResponseRedirect(
+            reverse('accounts:login', kwargs={'fmt': fmt}))
+
+    # prepare lists (decryption and sort)
     mail_list = Mailaddr.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('mailaddr_text')
+        accup_user_id__accup_user_name=username)
+    mail_list = obj_sort_by(
+        obj_list_decrypt(mail_list, 'mailaddr_text', enc),
+        'mailaddr_text')
     address_list = Address.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('address_text')
+        accup_user_id__accup_user_name=username)
+    address_list = obj_sort_by(
+        obj_list_decrypt(address_list, 'address_text', enc),
+        'address_text')
     phonenum_list = Phonenum.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('phonenum_text')
+        accup_user_id__accup_user_name=username)
+    phonenum_list = obj_sort_by(
+        obj_list_decrypt(phonenum_list, 'phonenum_text', enc),
+        'phonenum_text')
     service_list = Service.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('service_name')
+        accup_user_id__accup_user_name=username)
+    service_list = obj_sort_by(
+        obj_list_decrypt(service_list, 'service_name', enc),
+        'service_name')
     account_list = Account.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('service__service_name')
+        accup_user_id__accup_user_name=username)
+    account_list = sort_and_decrypt_account_list(account_list, enc)
+
+    # set view arguments
     template = loader.get_template('acclist/accandmaillist.html')
     context = {
         'title_text': 'Account list',
@@ -81,8 +104,21 @@ def accdetail(request, username, accid, fmt, relay=None, rendered=None):
     account = get_object_or_404(Account,
         Q(accup_user_id__accup_user_name=username),
         Q(id=accid))
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(username, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        django_simple_logout(request)
+        return HttpResponseRedirect(
+            reverse('accounts:login', kwargs={'fmt': fmt}))
+
+    # TODO
+    # アカウントとサブオブジェクトを全部復号する
+
     return HttpResponse(
-        accdetail_render(request, username, account, relay, rendered))
+        accdetail_render(request, username, account, enc, relay, rendered))
 
 @login_required(login_url=login_url_def_name)
 def servicelinkedlist(request, username, serviceid, fmt, relay=None):
@@ -582,12 +618,19 @@ def update(request, username, accid, fmt):
             Q(accup_user_id__accup_user_name=username),
             Q(id=accid))
     user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    # prepare encryption
+    try:
+        enc = get_encryptor(username, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        django_simple_logout(request)
+        return HttpResponseRedirect(
+            reverse('accounts:login', kwargs={'fmt': fmt}))
     # save updated information
     result = None
     acc = None
     try:
         with transaction.atomic():
-            acc = update_account(user.id, account, params, user)
+            acc = update_account(user.id, account, params, user, enc)
         result = UPDATE_RESPONSE['ok']
     except IntegrityError as e:
         print(sys.exc_info())

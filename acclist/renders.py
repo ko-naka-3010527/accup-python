@@ -9,7 +9,12 @@ from .lib.definitions.valuename import *
 from .lib.definitions.common import *
 from .lib.definitions.specialconsts import *
 
-def accdetail_render(request, username, account, relay, rendered=None):
+def accdetail_render(request, username, account, enc, relay, rendered=None):
+    # decryption
+    # TODO
+    # アカウントとサブオブジェクトをcontextにセットできるようにする
+
+    # prepare response
     template = loader.get_template('acclist/accdetail.html')
     context = {
         'title_text': 'Account detail',
