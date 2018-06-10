@@ -8,13 +8,14 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db import IntegrityError, transaction
-from django.contrib.auth import logout as django_simple_logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import logout as django_logout
 from django.core.signing import BadSignature, SignatureExpired
 
 from accounts.models import User as Acclistuser
 from accounts.permissions import is_users_url
 from accounts.views import login_redirect
+from accounts.views import logout as acc_logout
 from .renders import *
 from .models import *
 import json
@@ -25,6 +26,7 @@ from .lib.definitions.message_error_update import *
 from .lib.definitions.specialconsts import *
 #from .lib.logic.util import *
 from .lib.exception.acclistexception import *
+from .lib.exception.acccryptoexception import AcccryptoDecryptException
 from .lib.form.update import *
 from .lib.logic.update import *
 from .lib.logic.cryptoutil import get_encryptor
@@ -43,6 +45,9 @@ login_url_def_name = 'accounts:login'
 def index(request):
     return login_redirect(request)
 
+def failure(request):
+    return django_logout(request, template_name='acclist/failure.html')
+
 @login_required(login_url=login_url_def_name)
 def alllist(request, username, fmt):
     # permission check
@@ -51,36 +56,34 @@ def alllist(request, username, fmt):
     # prepare decryption
     user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
     try:
-        enc = get_encryptor(username, user)
+        enc = get_encryptor(request, user)
     except (KeyError, BadSignature, SignatureExpired):
-        django_simple_logout(request)
-        return HttpResponseRedirect(
-            reverse('accounts:login', kwargs={'fmt': fmt}))
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # prepare lists (decryption and sort)
     mail_list = Mailaddr.objects.filter(
         accup_user_id__accup_user_name=username)
-    mail_list = obj_sort_by(
-        obj_list_decrypt(mail_list, 'mailaddr_text', enc),
-        'mailaddr_text')
+    mail_list = obj_sort_by_property_name(
+        obj_list_decrypt(mail_list, enc), 'mailaddr_text')
     address_list = Address.objects.filter(
         accup_user_id__accup_user_name=username)
-    address_list = obj_sort_by(
-        obj_list_decrypt(address_list, 'address_text', enc),
-        'address_text')
+    address_list = obj_sort_by_property_name(
+        obj_list_decrypt(address_list, enc), 'address_text')
     phonenum_list = Phonenum.objects.filter(
         accup_user_id__accup_user_name=username)
-    phonenum_list = obj_sort_by(
-        obj_list_decrypt(phonenum_list, 'phonenum_text', enc),
-        'phonenum_text')
+    phonenum_list = obj_sort_by_property_name(
+        obj_list_decrypt(phonenum_list, enc), 'phonenum_text')
     service_list = Service.objects.filter(
         accup_user_id__accup_user_name=username)
-    service_list = obj_sort_by(
-        obj_list_decrypt(service_list, 'service_name', enc),
-        'service_name')
+    service_list = obj_sort_by_property_name(
+        obj_list_decrypt(service_list, enc), 'service_name')
     account_list = Account.objects.filter(
         accup_user_id__accup_user_name=username)
-    account_list = sort_and_decrypt_account_list(account_list, enc)
+    account_list = obj_sort_by_lambda(
+        obj_list_decrypt(account_list, enc), lambda x:x.service.service_name)
 
     # set view arguments
     template = loader.get_template('acclist/accandmaillist.html')
@@ -100,42 +103,62 @@ def accdetail(request, username, accid, fmt, relay=None, rendered=None):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     account = get_object_or_404(Account,
         Q(accup_user_id__accup_user_name=username),
         Q(id=accid))
 
-    # prepare decryption
-    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
-    try:
-        enc = get_encryptor(username, user)
-    except (KeyError, BadSignature, SignatureExpired):
-        django_simple_logout(request)
-        return HttpResponseRedirect(
-            reverse('accounts:login', kwargs={'fmt': fmt}))
-
-    # TODO
-    # アカウントとサブオブジェクトを全部復号する
-
     return HttpResponse(
-        accdetail_render(request, username, account, enc, relay, rendered))
+        accdetail_render(
+            request, username, account.decrypt(enc), relay, rendered))
 
 @login_required(login_url=login_url_def_name)
 def servicelinkedlist(request, username, serviceid, fmt, relay=None):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     service_obj = get_object_or_404(Service,
         Q(accup_user_id__accup_user_name=username),
         Q(id=serviceid))
+
     return HttpResponse(servicelinkedlist_render(
-        request, service_obj, username, relay))
+        request, service_obj.decrypt(enc), enc, username, relay))
 
 @login_required(login_url=login_url_def_name)
 def servicedeleteconfirm(request, username, serviceid, fmt):
     # permission check
     is_users_url(request.user, username)
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # main process
     # get account object
@@ -143,12 +166,14 @@ def servicedeleteconfirm(request, username, serviceid, fmt):
         Q(accup_user_id__accup_user_name=username),
         Q(id=serviceid))
     # related accounts
-    related_account_list = []
     linked_tmp = Account.objects.filter(
         Q(service__id=service.id),
-        Q(accup_user_id__accup_user_name=username)
-    ).order_by('service__service_name')
-    related_account_list.extend(linked_tmp)
+        Q(accup_user_id__accup_user_name=username))
+    #decrypt
+    service.decrypt(enc)
+    related_account_list = obj_sort_by_lambda(
+        obj_list_decrypt(linked_tmp, enc),
+        lambda x:x.service.service_name)
     # delete information
     msg_template = loader.get_template('acclist/linkedinfodeleteconfirm.html')
     msg_context = {
@@ -177,6 +202,16 @@ def servicedelete(request, username, serviceid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     service = get_object_or_404(Service,
         Q(accup_user_id__accup_user_name=username),
@@ -204,8 +239,8 @@ def servicedelete(request, username, serviceid, fmt):
                 'relay': result['message'],
             }
             return servicelinkedlist_render(
-                request, service, username, relay=errmsg.render(
-                    context, request))
+                request, service.decrypt(enc), enc, username,
+                relay=errmsg.render(context, request))
         else:
             return HttpResponseRedirect(
                 reverse('acclist:servicedeletesuccess', args=(fmt, username)))
@@ -234,17 +269,37 @@ def maillinkedlist(request, username, mailid, fmt, relay=None):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     mailaddr_obj = get_object_or_404(Mailaddr,
         Q(accup_user_id__accup_user_name=username),
         Q(id=mailid))
     return HttpResponse(maillinkedlist_render(
-        request, mailaddr_obj, username, relay))
+        request, mailaddr_obj.decrypt(enc), enc, username, relay))
 
 @login_required(login_url=login_url_def_name)
 def maildeleteconfirm(request, username, mailid, fmt):
     # permission check
     is_users_url(request.user, username)
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # main process
     # get account object
@@ -255,19 +310,22 @@ def maildeleteconfirm(request, username, mailid, fmt):
     related_account_list = []
     linked_tmp = Account.objects.filter(
         Q(mailaddr1__id=mailaddr.id),
-        Q(accup_user_id__accup_user_name=username)
-    ).order_by('service__service_name')
+        Q(accup_user_id__accup_user_name=username))
     related_account_list.extend(linked_tmp)
     linked_tmp = Account.objects.filter(
         Q(mailaddr2__id=mailaddr.id),
-        Q(accup_user_id__accup_user_name=username)
-    ).order_by('service__service_name')
+        Q(accup_user_id__accup_user_name=username))
     related_account_list.extend(linked_tmp)
     linked_tmp = Account.objects.filter(
         Q(mailaddr3__id=mailaddr.id),
-        Q(accup_user_id__accup_user_name=username)
-    ).order_by('service__service_name')
+        Q(accup_user_id__accup_user_name=username))
     related_account_list.extend(linked_tmp)
+    # decrypt
+    mailaddr.decrypt(enc)
+    related_account_list = obj_sort_by_lambda(
+        obj_list_decrypt(related_account_list, enc),
+        lambda x:x.service.service_name)
+
     # delete information
     msg_template = loader.get_template('acclist/linkedinfodeleteconfirm.html')
     msg_context = {
@@ -296,6 +354,16 @@ def maildelete(request, username, mailid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     mailaddr = get_object_or_404(Mailaddr,
         Q(accup_user_id__accup_user_name=username),
@@ -323,8 +391,8 @@ def maildelete(request, username, mailid, fmt):
                 'relay': result['message'],
             }
             return maillinkedlist_render(
-                request, mailaddr, username, relay=errmsg.render(
-                    context, request))
+                request, mailaddr.decrypt(enc), enc, username,
+                relay=errmsg.render(context, request))
         else:
             return HttpResponseRedirect(
                 reverse('acclist:maildeletesuccess', args=(fmt, username)))
@@ -353,17 +421,37 @@ def addresslinkedlist(request, username, addressid, fmt, relay=None):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     address_obj = get_object_or_404(Address,
         Q(accup_user_id__accup_user_name=username),
         Q(id=addressid))
     return HttpResponse(addresslinkedlist_render(
-        request, address_obj, username, relay))
+        request, address_obj.decrypt(enc), enc, username, relay))
 
 @login_required(login_url=login_url_def_name)
 def addressdeleteconfirm(request, username, addressid, fmt):
     # permission check
     is_users_url(request.user, username)
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # main process
     # get account object
@@ -377,6 +465,11 @@ def addressdeleteconfirm(request, username, addressid, fmt):
         Q(accup_user_id__accup_user_name=username)
     ).order_by('service__service_name')
     related_account_list.extend(linked_tmp)
+    # decrypt
+    address.decrypt(enc)
+    related_account_list = obj_sort_by_lambda(
+        obj_list_decrypt(related_account_list, enc),
+        lambda x:x.service.service_name)
     # delete information
     msg_template = loader.get_template('acclist/linkedinfodeleteconfirm.html')
     msg_context = {
@@ -405,6 +498,16 @@ def addressdelete(request, username, addressid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     address = get_object_or_404(Address,
         Q(accup_user_id__accup_user_name=username),
@@ -432,8 +535,8 @@ def addressdelete(request, username, addressid, fmt):
                 'relay': result['message'],
             }
             return addresslinkedlist_render(
-                request, address, username, relay=errmsg.render(
-                    context, request))
+                request, address.decrypt(enc), enc, username,
+                relay=errmsg.render(context, request))
         else:
             return HttpResponseRedirect(
                 reverse('acclist:addressdeletesuccess', args=(fmt, username)))
@@ -462,17 +565,37 @@ def phonenumlinkedlist(request, username, phonenumid, fmt, relay=None):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     phonenum_obj = get_object_or_404(Phonenum,
         Q(accup_user_id__accup_user_name=username),
         Q(id=phonenumid))
     return HttpResponse(phonenumlinkedlist_render(
-        request, phonenum_obj, username, relay))
+        request, phonenum_obj.decrypt(enc), enc, username, relay))
 
 @login_required(login_url=login_url_def_name)
 def phonenumdeleteconfirm(request, username, phonenumid, fmt):
     # permission check
     is_users_url(request.user, username)
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # main process
     # get account object
@@ -486,6 +609,11 @@ def phonenumdeleteconfirm(request, username, phonenumid, fmt):
         Q(accup_user_id__accup_user_name=username)
     ).order_by('service__service_name')
     related_account_list.extend(linked_tmp)
+    # decrypt
+    phonenum.decrypt(enc)
+    related_account_list = obj_sort_by_lambda(
+        obj_list_decrypt(related_account_list, enc),
+        lambda x:x.service.service_name)
     # delete information
     msg_template = loader.get_template('acclist/linkedinfodeleteconfirm.html')
     msg_context = {
@@ -514,6 +642,16 @@ def phonenumdelete(request, username, phonenumid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     phonenum = get_object_or_404(Phonenum,
         Q(accup_user_id_id__accup_user_name=username),
@@ -541,8 +679,8 @@ def phonenumdelete(request, username, phonenumid, fmt):
                 'relay': result['message'],
             }
             return phonenumlinkedlist_render(
-                request, phonenum, username, relay=errmsg.render(
-                    context, request))
+                request, phonenum.decrypt(enc), enc, username,
+                relay=errmsg.render(context, request))
         else:
             return HttpResponseRedirect(
                 reverse('acclist:phonenumdeletesuccess', args=(fmt, username)))
@@ -571,23 +709,53 @@ def updateform(request, username, accid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     return HttpResponse(
-        updateform_render(request, username, accid, fmt))
+        updateform_render(request, username, accid, fmt, enc))
 
 @login_required(login_url=login_url_def_name)
 def insertform(request, username, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     return HttpResponse(
-        updateform_render(request, username, None, fmt, True))
+        updateform_render(request, username, None, fmt, enc, True))
 
 @login_required(login_url=login_url_def_name)
 def update(request, username, accid, fmt):
     # permission check
     is_users_url(request.user, username)
+
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
 
     # main process
     # validate params
@@ -605,7 +773,7 @@ def update(request, username, accid, fmt):
         if fmt == 'html':
             result = UPDATE_RESPONSE['update_parameter_error']
             return updateform_render(
-                request, username, accid, fmt, False,
+                request, username, accid, fmt, enc, False,
                 relay={'result': result},
                 validate=params)
         # only html format request is allowed, at least for now..
@@ -617,14 +785,7 @@ def update(request, username, accid, fmt):
         account = get_object_or_404(Account,
             Q(accup_user_id__accup_user_name=username),
             Q(id=accid))
-    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
-    # prepare encryption
-    try:
-        enc = get_encryptor(username, user)
-    except (KeyError, BadSignature, SignatureExpired):
-        django_simple_logout(request)
-        return HttpResponseRedirect(
-            reverse('accounts:login', kwargs={'fmt': fmt}))
+        account.decrypt(enc)
     # save updated information
     result = None
     acc = None
@@ -636,6 +797,7 @@ def update(request, username, accid, fmt):
         print(sys.exc_info())
         result = UPDATE_RESPONSE['transaction_error']
     except AcclistException as e:
+        print(sys.exc_info())
         result = e.acclist_err_dict
     except Exception as e:
         result = UPDATE_RESPONSE['unexpected_error']
@@ -648,11 +810,11 @@ def update(request, username, accid, fmt):
         if result['code'] != 0:
             if accid is None:
                 return updateform_render(
-                    request, username, accid, fmt,
+                    request, username, accid, fmt, enc,
                     True, relay={'result': result})
             else:
                 return updateform_render(
-                    request, username, accid, fmt,
+                    request, username, accid, fmt, enc,
                     False, relay={'result': result})
         if accid is None:
             return HttpResponseRedirect(
@@ -707,6 +869,16 @@ def deleteconfirm(request, username, accid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     # get account object
     account = get_object_or_404(Account,
@@ -729,6 +901,11 @@ def deleteconfirm(request, username, accid, fmt):
         Q(accup_user_id__accup_user_name=username)
     ).order_by('service__service_name')
     related_account_list.extend(linked_tmp)
+    # decrypt
+    account.decrypt(enc)
+    related_account_list = obj_sort_by_lambda(
+        obj_list_decrypt(related_account_list, enc),
+        lambda x:x.service.service_name)
     # delete information
     msg_template = loader.get_template('acclist/deleteconfirm.html')
     msg_context = {
@@ -756,6 +933,16 @@ def delete(request, username, accid, fmt):
     # permission check
     is_users_url(request.user, username)
 
+    # prepare decryption
+    user = get_object_or_404(Acclistuser, Q(accup_user_name=username))
+    try:
+        enc = get_encryptor(request, user)
+    except (KeyError, BadSignature, SignatureExpired):
+        return failure(request)
+    except AcccryptoDecryptException as e:
+        #return failure(request)
+        raise e
+
     # main process
     # validate params
     params = None
@@ -781,7 +968,7 @@ def delete(request, username, accid, fmt):
     # return response
     if fmt == 'html':
         if result['code'] != 0:
-            return accdetail_render(request, username, account,
+            return accdetail_render(request, username, account.decrypt(enc),
                 relay={'result': result})
         else:
             return HttpResponseRedirect(

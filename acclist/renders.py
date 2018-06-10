@@ -8,13 +8,10 @@ from .lib.definitions.message import *
 from .lib.definitions.valuename import *
 from .lib.definitions.common import *
 from .lib.definitions.specialconsts import *
+from .lib.logic.modelutil import *
 
-def accdetail_render(request, username, account, enc, relay, rendered=None):
-    # decryption
-    # TODO
-    # アカウントとサブオブジェクトをcontextにセットできるようにする
-
-    # prepare response
+def accdetail_render(
+        request, username, account, relay, rendered=None):
     template = loader.get_template('acclist/accdetail.html')
     context = {
         'title_text': 'Account detail',
@@ -26,11 +23,15 @@ def accdetail_render(request, username, account, enc, relay, rendered=None):
     }
     return template.render(context, request)
 
-def servicelinkedlist_render(request, service_obj, username, relay=None):
+def servicelinkedlist_render(
+        request, service_obj, enc, username, relay=None):
     account_list = Account.objects.filter(
         Q(accup_user_id__accup_user_name=username),
-        Q(service=service_obj.id)
-    ).order_by('service__service_name')
+        Q(service=service_obj.id))
+    account_list = obj_sort_by_lambda(
+        obj_list_decrypt(account_list, enc),
+        lambda x:x.service.service_name)
+
     context = {
         'title_text': 'Account list',
         'account_list': account_list,
@@ -42,11 +43,15 @@ def servicelinkedlist_render(request, service_obj, username, relay=None):
     }
     return render(request, 'acclist/acclist.html', context)
 
-def maillinkedlist_render(request, mailaddr_obj, username, relay=None):
+def maillinkedlist_render(
+        request, mailaddr_obj, enc, username, relay=None):
     account_list = Account.objects.filter(
         Q(accup_user_id__accup_user_name=username),
-        Q(mailaddr1=mailaddr_obj.id) | Q(mailaddr2=mailaddr_obj.id) | Q(mailaddr3=mailaddr_obj.id)
-    ).order_by('service__service_name')
+        Q(mailaddr1=mailaddr_obj.id) | Q(mailaddr2=mailaddr_obj.id) | Q(mailaddr3=mailaddr_obj.id))
+    account_list = obj_sort_by_lambda(
+        obj_list_decrypt(account_list, enc),
+        lambda x:x.service.service_name)
+
     context = {
         'title_text': 'Account list',
         'account_list': account_list,
@@ -58,11 +63,15 @@ def maillinkedlist_render(request, mailaddr_obj, username, relay=None):
     }
     return render(request, 'acclist/acclist.html', context)
 
-def addresslinkedlist_render(request, address_obj, username, relay=None):
+def addresslinkedlist_render(
+        request, address_obj, enc, username, relay=None):
     account_list = Account.objects.filter(
         Q(accup_user_id__accup_user_name=username),
-        Q(address=address_obj.id)
-    ).order_by('service__service_name')
+        Q(address=address_obj.id))
+    account_list = obj_sort_by_lambda(
+        obj_list_decrypt(account_list, enc),
+        lambda x:x.service.service_name)
+
     context = {
         'title_text': 'Account list',
         'account_list': account_list,
@@ -74,11 +83,15 @@ def addresslinkedlist_render(request, address_obj, username, relay=None):
     }
     return render(request, 'acclist/acclist.html', context)
 
-def phonenumlinkedlist_render(request, phonenum_obj, username, relay=None):
+def phonenumlinkedlist_render(
+        request, phonenum_obj, enc, username, relay=None):
     account_list = Account.objects.filter(
         Q(accup_user_id__accup_user_name=username),
-        Q(phonenum=phonenum_obj.id)
-    ).order_by('service__service_name')
+        Q(phonenum=phonenum_obj.id))
+    account_list = obj_sort_by_lambda(
+        obj_list_decrypt(account_list, enc),
+        lambda x:x.service.service_name)
+
     context = {
         'title_text': 'Account list',
         'account_list': account_list,
@@ -91,30 +104,36 @@ def phonenumlinkedlist_render(request, phonenum_obj, username, relay=None):
     return render(request, 'acclist/acclist.html', context)
 
 def updateform_render(
-    request, username, accid, fmt, newacc=False, relay=None, validate=None):
+        request, username, accid, fmt, enc,
+        newacc=False, relay=None, validate=None):
     if accid is None or newacc:
         account = Account()
     else:
         account = get_object_or_404(Account,
             Q(accup_user_id__accup_user_name=username),
             Q(id=accid))
+        account.decrypt(enc)
     mail_list = Mailaddr.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('mailaddr_text')
+        accup_user_id__accup_user_name=username)
+    mail_list = obj_sort_by_property_name(
+        obj_list_decrypt(mail_list, enc), 'mailaddr_text')
     service_list = Service.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('service_name')
+        accup_user_id__accup_user_name=username)
+    service_list = obj_sort_by_property_name(
+        obj_list_decrypt(service_list, enc), 'service_name')
     addr_list = Address.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('address_text')
+        accup_user_id__accup_user_name=username)
+    addr_list = obj_sort_by_property_name(
+        obj_list_decrypt(addr_list, enc), 'address_text')
     phone_list = Phonenum.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('phonenum_text')
+        accup_user_id__accup_user_name=username)
+    phone_list = obj_sort_by_property_name(
+        obj_list_decrypt(phone_list, enc), 'phonenum_text')
     account_list = Account.objects.filter(
-        accup_user_id__accup_user_name=username
-    ).order_by('modifieddate')
+        accup_user_id__accup_user_name=username).order_by('modifieddate')
+    account_list = obj_list_decrypt(account_list, enc)
     context = {
-        'title_text': 'Update account',
+        'title_text': 'Register new account' if newacc else 'Update account',
         'account': account,
         'mail_list': mail_list,
         'service_list': service_list,

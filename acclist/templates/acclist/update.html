@@ -13,9 +13,7 @@
             {{ relay.result.message }}
         </div>
         <div class="error_detail">
-            {% for d in relay.result.py_e %}
-            <div class="msg">{{ d }}</div>
-            {% endfor %}
+            <div class="msg">{{ relay.result.py_e }}</div>
         </div>
     </div>
         {% endif %}
@@ -76,24 +74,28 @@
         {% endif %}
         </div>
 
+        {% if newacc %}
+        <input type="hidden" name="updatepwd" value="1">
+        {% else %}
         <div class="form-group">
             <label>{{ key_string.password }}</label>
             <div class="form-row">
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1"{% if newacc %} checked{% endif %}>
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd1" value="1">
                 <label class="form-check-label" for="updatepwd1">{{ other_string.password_check_update }}</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0"{% if not newacc %} checked{% endif %}>
+                <input class="form-check-input" type="radio" name="updatepwd" id="updatepwd0" value="0" checked>
                 <label class="form-check-label" for="updatepwd0">{{ other_string.password_check_not_update }}</label>
             </div>
             </div>
-        {% if validate.updatepwd.errors %}
+            {% if validate.updatepwd.errors %}
             <small class="form-text text-muted">
                 {{ validate.updatepwd.errors }}
             </small>
-        {% endif %}
+            {% endif %}
         </div>
+        {% endif %}
 
         <div class="form-group">
             <label>{{ key_string.password_new }}</label>
