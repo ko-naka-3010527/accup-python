@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.template import loader
@@ -20,6 +21,7 @@ from .lib.definitions.message import *
 from .lib.definitions.message_error_update import *
 from .lib.exception.accountsexception import AccountsException
 from .lib.logic.update import update_accuser
+from acclist.lib.logic.cryptoutil import encrypt_pass_cookie
 
 import sys
 
@@ -33,11 +35,23 @@ def login_redirect(request, fmt='html'):
             args=(fmt, request.user.username)))
 
 def login(request, fmt='html'):
-    return django_login(request, template_name='accounts/login.html')
+    if "username" in request.POST and "password" in request.POST:
+        un = request.POST["username"]
+        pw = request.POST["password"]
+        key = un
+        val = encrypt_pass_cookie(pw)
+        response = django_login(request, template_name='accounts/login.html')
+        response.set_signed_cookie(key, val,
+            salt=settings.COOKIE_SIGNED_SALT,
+            max_age=settings.COOKIE_MAXAGE,
+            secure=settings.COOKIE_SECURE,
+            httponly=True)
+    else:
+        response = django_login(request, template_name='accounts/login.html')
+    return response
 
 def logout(request, fmt='html'):
     return django_logout(request, template_name='accounts/logout.html')
-    #return HttpResponse(render(request, 'accounts/logout.html'))
 
 def index(request, fmt='html'):
     return login_redirect(request, fmt)

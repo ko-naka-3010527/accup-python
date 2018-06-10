@@ -12,7 +12,8 @@ def is_new(param):
 def is_blank(param):
     return param == SELECT_OPTION['blank']
 
-def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
+def mail_addr_prepare(
+    mail_input, new_mail_input, num, accup_user_id, user, enc):
     if is_blank(mail_input):
         return None
     elif is_new(mail_input):
@@ -25,6 +26,7 @@ def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
         mail = Mailaddr()
         mail.accup_user_id = user
         mail.mailaddr_text = new_mail_input
+        mail.encrypt(enc)
         try:
             mail.full_clean()
         except ValidationError as e:
@@ -52,15 +54,17 @@ def mail_addr_prepare(mail_input, new_mail_input, num, accup_user_id, user):
             e.set_params(
                 UPDATE_RESPONSE['user_mail' + str(num) + '_mismatch'])
             raise e
+        mail_tmp.enc = True
         return mail_tmp
 
-def update_account(accup_user_id, account, form, user):
+def update_account(accup_user_id, account, form, user, enc):
     # create new record of 'Account' if account is None
     if account is None:
         acc = Account()
         acc.accup_user_id = user
     else:
         acc = account
+        acc.decrypt(enc)
         if acc.accup_user_id.id != accup_user_id:
             e = AcclistException()
             e.set_params(
@@ -83,6 +87,7 @@ def update_account(accup_user_id, account, form, user):
         service = Service()
         service.accup_user_id = user
         service.service_name = newservice_input
+        service.encrypt(enc)
         try:
             service.full_clean()
         except ValidationError as e:
@@ -110,6 +115,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_service_mismatch'])
             raise e
+        service_tmp.enc = True
         acc.service = service_tmp
     
     # Account ID
@@ -133,9 +139,9 @@ def update_account(accup_user_id, account, form, user):
     new_mail1_input = form.cleaned_data['newmail1']
     new_mail2_input = form.cleaned_data['newmail2']
     new_mail3_input = form.cleaned_data['newmail3']
-    print(new_mail1_input)
-    print(new_mail2_input)
-    print(new_mail3_input)
+    #print(new_mail1_input)
+    #print(new_mail2_input)
+    #print(new_mail3_input)
     if not is_blank(mail1_input) and not is_new(mail1_input):
         if not is_blank(mail2_input) and not is_new(mail2_input):
             if mail1_input == mail2_input:
@@ -177,11 +183,11 @@ def update_account(accup_user_id, account, form, user):
                     UPDATE_RESPONSE['param_mailaddr_duplicate'])
                 raise e
     acc.mailaddr1 = mail_addr_prepare(
-        mail1_input, new_mail1_input, 1, accup_user_id, user)
+        mail1_input, new_mail1_input, 1, accup_user_id, user, enc)
     acc.mailaddr2 = mail_addr_prepare(
-        mail2_input, new_mail2_input, 2, accup_user_id, user)
+        mail2_input, new_mail2_input, 2, accup_user_id, user, enc)
     acc.mailaddr3 = mail_addr_prepare(
-        mail3_input, new_mail3_input, 3, accup_user_id, user)
+        mail3_input, new_mail3_input, 3, accup_user_id, user, enc)
 
     # check if 'address' is new or blank or not
     address_input = form.cleaned_data['address']
@@ -198,6 +204,7 @@ def update_account(accup_user_id, account, form, user):
         address = Address()
         address.accup_user_id = user
         address.address_text = newaddress_input
+        address.encrypt(enc)
         try:
             address.full_clean()
         except ValidationError as e:
@@ -225,6 +232,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_address_mismatch'])
             raise e
+        address_tmp.enc = True
         acc.address = address_tmp
 
     # check if 'phonenum' is new or blank or not
@@ -242,6 +250,7 @@ def update_account(accup_user_id, account, form, user):
         phonenum = Phonenum()
         phonenum.accup_user_id = user
         phonenum.phonenum_text = newphonenum_input
+        phonenum.encrypt(enc)
         try:
             phonenum.full_clean()
         except ValidationError as e:
@@ -269,6 +278,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_phonenum_mismatch'])
             raise e
+        phonenum_tmp.enc = True
         acc.phonenum = phonenum_tmp
 
     # check if 'link1' is blank or not
@@ -285,6 +295,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_link1_mismatch'])
             raise e
+        acc_tmp.enc = True
         acc.link1 = acc_tmp
 
     # check if 'link2' is blank or not
@@ -301,6 +312,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_link2_mismatch'])
             raise e
+        acc_tmp.enc = True
         acc.link2 = acc_tmp
 
     # check if 'link3' is blank or not
@@ -317,6 +329,7 @@ def update_account(accup_user_id, account, form, user):
             e.set_params(
                 UPDATE_RESPONSE['user_link3_mismatch'])
             raise e
+        acc_tmp.enc = True
         acc.link3 = acc_tmp
 
     # multifactor type
@@ -342,6 +355,8 @@ def update_account(accup_user_id, account, form, user):
     # memo
     acc.memo = form.cleaned_data['memo']
 
+    # encrypt account
+    acc.encrypt(enc)
     # save
     try:
         acc.full_clean()
