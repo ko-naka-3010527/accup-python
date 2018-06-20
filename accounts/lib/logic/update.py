@@ -1,15 +1,11 @@
-from django.conf import settings
-#from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as Djguser
-#from acclist.lib.definitions.specialconsts import *
 from accounts.lib.definitions.message_error_update import *
 from accounts.lib.exception.accountsexception import AccountsException
 from accounts.models import User as Accuser
 from acclist.lib.logic.cryptoutil import CipherKey
-#import json
 
 import re
 

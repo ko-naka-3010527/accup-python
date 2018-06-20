@@ -5,7 +5,13 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
+from acclist.lib.exception.acccryptoexception import AcccryptoDecryptException
+
 class AccCrypto(object):
+    def __init__(self):
+        # must be ascii str
+        self.checkstr = 'accup_crypto'
+
     def _pad(self, s, size):
         l = len(s)
         pad_bytes = (size - l % size) * chr(size - l % size)
@@ -33,6 +39,7 @@ class AccCrypto(object):
 class AESCipher(AccCrypto):
     def __init__(self, key, key_length_bit=128, encode="utf-8"):
         # initialize
+        super().__init__()
         self.kl_byte = int(key_length_bit / 8)
         self.bs = AES.block_size
         self.encode = encode
@@ -45,7 +52,7 @@ class AESCipher(AccCrypto):
             self.key = self._pad(key_bytes, self.kl_byte)
 
     def cbc_encrypt(self, pt, base64encode=True):
-        pt_bytes = self._to_bytes(pt, "pt")
+        pt_bytes = self._to_bytes(pt, "pt") + self.checkstr.encode("ascii")
         pt_raw = self._pad(pt_bytes, self.bs)
         iv = Random.new().read(self.bs)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
@@ -63,14 +70,17 @@ class AESCipher(AccCrypto):
         iv = ct_raw[:self.bs]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         pt_raw = cipher.decrypt(ct_raw[self.bs:])
-        pt_str = self._to_str(pt_raw, "pt_raw")
-        return self._unpad(pt_str)
+        pt_str = self._unpad(self._to_str(pt_raw, "pt_raw"))
+        if pt_str[-1*len(self.checkstr):] != self.checkstr:
+            raise AcccryptoDecryptException("CBC")
+        return pt_str[:-1*len(self.checkstr)]
 
     def ecb_encrypt(self, pt, base64encode=True, nopad=False):
         pt_bytes = self._to_bytes(pt, "pt")
         if nopad:
             pt_raw = pt_bytes
         else:
+            pt_bytes = pt_bytes + self.checkstr.encode("ascii")
             pt_raw = self._pad(pt_bytes, self.bs)
         cipher = AES.new(self.key, AES.MODE_ECB)
         cyp_raw = cipher.encrypt(pt_raw)
@@ -89,6 +99,9 @@ class AESCipher(AccCrypto):
             pt_raw = cipher.decrypt(ct_raw)
         else:
             pt_raw = self._unpad(cipher.decrypt(ct_raw))
+            if pt_raw[-1*len(self.checkstr):] != self.checkstr.encode("ascii"):
+                raise AcccryptoDecryptException("ECB")
+            pt_raw = pt_raw[:-1*len(self.checkstr)]
         if to_str:
             return self._to_str(pt_raw, "pt_raw")
         else:

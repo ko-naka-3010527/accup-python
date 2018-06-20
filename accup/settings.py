@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 from accup.secrets import *
 
@@ -123,4 +125,11 @@ LOGIN_REDIRECT_URL = 'accounts:loginredirect'
 CIPHER_KEY_LENGTH = 256
 CIPHER_REALM = SECRET_CONFIG['realm']
 CIPHER_MB_ENCODING = "utf-8"
+CIPHER_FAILURE_STR = "※※※データが破損しています！※※※"
+
+# cookie
+COOKIE_SIGNED_SALT = SECRET_CONFIG['cookie_salt']
+COOKIE_MAXAGE = 60*30
+COOKIE_SECURE = None
+COOKIE_ENC_KEY = SECRET_CONFIG['cookie_enc_key']
 
