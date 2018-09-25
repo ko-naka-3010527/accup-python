@@ -16,6 +16,7 @@ from django.db import IntegrityError, transaction
 from .permissions import is_users_url
 from .renders import *
 from .models import User as Accuser
+from .models import Userlogin as Ulin
 from .lib.form.signupform import *
 from .lib.definitions.message import *
 from .lib.definitions.message_error_update import *
@@ -46,6 +47,12 @@ def login(request, fmt='html'):
             max_age=settings.COOKIE_MAXAGE,
             secure=settings.COOKIE_SECURE,
             httponly=True)
+        # insert login history
+        ulin = Ulin()
+        ulin.accup_user_id = get_object_or_404(
+            Accuser, Q(accup_user_name=un))
+        ulin.login_ip = request.META.get('REMOTE_ADDR')
+        ulin.save()
     else:
         response = django_login(request, template_name='accounts/login.html')
     return response
