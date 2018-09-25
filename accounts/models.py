@@ -9,3 +9,8 @@ class User(models.Model):
     modifieddate = models.DateTimeField(auto_now=True)
     deletedate = models.DateTimeField(blank=True, null=True)
 
+# login history
+class Userlogin(models.Model):
+    accup_user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    login_date = models.DateTimeField(auto_now_add=True)
+    login_ip = models.GenericIPAddressField()
